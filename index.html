@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Punny Place Planner Way</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Overpass:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1>PUNNY PLACE <span>PLANNER WAY</span></h1>
+      <p class="tagline">Name the streets. Make the intersections laugh.</p>
+    </header>
+
+    <nav id="level-select">
+      <button data-level="1" class="active">Level 1 · Cul-de-Sac</button>
+      <button data-level="2">Level 2 · Suburban</button>
+      <button data-level="3">Level 3 · Urban Grid</button>
+    </nav>
+
+    <div id="game-area">
+      <canvas id="map" width="900" height="620"></canvas>
+
+      <aside id="sidebar">
+        <h2>Instructions</h2>
+        <ul>
+          <li>Click a <strong>street segment</strong> to name it</li>
+          <li>Click a <strong>node</strong> (intersection) to see the sign</li>
+          <li>Use the double-arrow to reverse name order</li>
+        </ul>
+        <div id="status">Select a street or intersection</div>
+        <button id="clear-names" class="secondary">Clear all names</button>
+      </aside>
+    </div>
+  </div>
+
+  <!-- Naming modal -->
+  <div id="name-modal" class="modal hidden">
+    <div class="modal-content pixel-border">
+      <h3>Name this street</h3>
+      <label>Street name
+        <input type="text" id="street-name" maxlength="24" placeholder="e.g. Punny" autocomplete="off" />
+      </label>
+      <label>Type
+        <select id="street-type"></select>
+      </label>
+      <div class="modal-actions">
+        <button id="save-name">Save</button>
+        <button id="cancel-name" class="secondary">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sign modal -->
+  <div id="sign-modal" class="modal hidden">
+    <div class="modal-content sign-wrapper">
+      <div id="street-sign" class="pixel-sign">
+        <!-- filled by JS -->
+      </div>
+      <button id="reverse-order" title="Reverse order">↔ Reverse</button>
+      <button id="close-sign" class="secondary">Close</button>
+    </div>
+  </div>
+
+  <script src="js/levels.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>
