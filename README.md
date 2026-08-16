@@ -1,39 +1,40 @@
 # Punny Place Planner Way
 
-A pixel-art style game where you name streets so their intersections form silly / punny jokes.
+A mid-90s pixel-style browser game where you name streets so their intersections create silly / punny jokes.
 
-**Aesthetic:** Mid-90s computer game maps + Overpass font + classic green street signs.
+**Live (after enabling Pages):** https://jmm5101.github.io/Punny-Place-Planner-Way/
 
-## How to Play
+## Features (v1.1)
 
-1. Select a level.
-2. **Click a street segment** (the thick line) → type a name and choose the street type from the dropdown.
-3. **Click an intersection node** → a pixel street sign appears showing the names that meet there.
-4. Use the **↔** (double arrow) on the sign to reverse the order of the names.
-5. Goal: make the signs read as puns / jokes (e.g. "Punny Place" over "Planner Way").
+- **Green grass background** + **black asphalt streets** with **double yellow center lines**
+- Streets can **curve** (except pure grid)
+- **Continuous streets** share one name – name once, it appears along the whole road
+- Street names display on the map after naming
+- Click any street → name it + choose type from the full list (Alley/ALY … Way/WAY)
+- Click an **intersection node** → photo-style dual street-sign popup (green blades on gray pole against blue sky)
+- **↔ Reverse** button to swap which name is on top
+- **Cul-de-sacs** are bulbous, have **no nodes**, and never show street signs
+- Three levels:
+  - **Level 1 – Federated Tree**: hierarchical branching, each segment depends on the previous, ends in cul-de-sacs
+  - **Level 2 – Suburban**: ~30 nodes, many curved streets and bulbous cul-de-sacs
+  - **Level 3 – Urban Grid**: clean 10×10 grid (100 nodes), straight streets
 
-## Levels (v1)
+## How to run / deploy
 
-| Level | Theme              | Nodes | Layout notes |
-|-------|--------------------|-------|--------------|
-| 1     | Cul-de-Sac         | ~12   | Main highway + branching roads that each have a mid-way T and end in a cul-de-sac |
-| 2     | Suburban           | 30    | Irregular neighborhood; most streets pass through three intersections |
-| 3     | Urban Grid         | 100   | Clean 10 × 10 street grid |
+1. Open `index.html` in any modern browser, **or**
+2. Push to GitHub and enable **Pages**:
+   - Repo → **Settings** → **Pages**
+   - Source: **Deploy from a branch**
+   - Branch: **main**
+   - Folder: **/ (root)**
+   - Save → wait ~1 minute → site is live
 
-## Street Types
+## Font
 
-Alley (ALY), Avenue (AVE), Boulevard (BLVD), Circle (CIR), Court (CT), Drive (DR), Highway (HWY), Lane (LN), Parkway (PKWY), Place (PL), Road (RD), Street (ST), Terrace (TER), Trail (TRL), Way (WAY)
+Uses **Overpass** (Google Fonts).
 
-## Tech
+## Controls
 
-- Pure HTML / CSS / Canvas / vanilla JS
-- Overpass font (Google Fonts)
-- Designed for GitHub Pages
-
-## Run locally
-
-Just open `index.html` in a modern browser, or serve the folder.
-
----
-
-*Created with Grok*
+- Click black road → name the continuous street
+- Click yellow intersection circle → view / reverse the street-sign graphic
+- Switch levels with the top tabs
