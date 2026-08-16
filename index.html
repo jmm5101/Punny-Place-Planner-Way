@@ -56,7 +56,7 @@
         <div class="logo-sign bottom">Planner Way</div>
       </div>
       <div class="logo-pole"></div>
-      <div class="version">v5.3</div>
+      <div class="version">v5.4</div>
     </div>
     <div class="level-tabs">
       <button data-level="1" class="active">1. Cul-De-Sac</button>
@@ -104,7 +104,7 @@
     </div>
   </div>
   <script>
-const VERSION = '5.3';
+const VERSION = '5.4';
 const canvas = document.getElementById('map');
 const ctx = canvas.getContext('2d');
 const container = document.getElementById('game-container');
@@ -159,127 +159,32 @@ function generateLevel1(){
 }
 function generateLevel2(){
   nodes = []; roads = [];
-  // Evenly distributed suburban network across the full 720×1280 map.
-  // 5 horizontal arterials + 4 vertical connectors, plus short connectors and ~half cul-de-sacs.
-
-  // Horizontal rows of intersection nodes (y evenly spaced)
-  // Row A (top)
-  const A0 = N(120, 140), A1 = N(280, 140), A2 = N(440, 140), A3 = N(600, 140);
-  // Row B
-  const B0 = N(120, 340), B1 = N(280, 340), B2 = N(440, 340), B3 = N(600, 340);
-  // Row C (mid)
-  const C0 = N(120, 560), C1 = N(280, 560), C2 = N(440, 560), C3 = N(600, 560);
-  // Row D
-  const D0 = N(120, 780), D1 = N(280, 780), D2 = N(440, 780), D3 = N(600, 780);
-  // Row E
-  const E0 = N(120, 1000), E1 = N(280, 1000), E2 = N(440, 1000), E3 = N(600, 1000);
-  // Row F (bottom)
-  const F0 = N(120, 1180), F1 = N(280, 1180), F2 = N(440, 1180), F3 = N(600, 1180);
-
-  // ===== Horizontal through streets (evenly spaced) =====
-  // Top arterial
-  roads.push({id:0, name:'', type:'AVE',
-    points:[{x:30,y:140},{x:A0.x,y:A0.y},{x:A1.x,y:A1.y},{x:A2.x,y:A2.y},{x:A3.x,y:A3.y},{x:690,y:140}],
-    nodeIds:[A0.id,A1.id,A2.id,A3.id], isCulDeSac:false});
-  // Upper-mid
-  roads.push({id:1, name:'', type:'ST',
-    points:[{x:30,y:340},{x:B0.x,y:B0.y},{x:B1.x,y:B1.y},{x:B2.x,y:B2.y},{x:B3.x,y:B3.y},{x:690,y:340}],
-    nodeIds:[B0.id,B1.id,B2.id,B3.id], isCulDeSac:false});
-  // Mid
-  roads.push({id:2, name:'', type:'AVE',
-    points:[{x:30,y:560},{x:C0.x,y:C0.y},{x:C1.x,y:C1.y},{x:C2.x,y:C2.y},{x:C3.x,y:C3.y},{x:690,y:560}],
-    nodeIds:[C0.id,C1.id,C2.id,C3.id], isCulDeSac:false});
-  // Lower-mid
-  roads.push({id:3, name:'', type:'ST',
-    points:[{x:30,y:780},{x:D0.x,y:D0.y},{x:D1.x,y:D1.y},{x:D2.x,y:D2.y},{x:D3.x,y:D3.y},{x:690,y:780}],
-    nodeIds:[D0.id,D1.id,D2.id,D3.id], isCulDeSac:false});
-  // Lower
-  roads.push({id:4, name:'', type:'AVE',
-    points:[{x:30,y:1000},{x:E0.x,y:E0.y},{x:E1.x,y:E1.y},{x:E2.x,y:E2.y},{x:E3.x,y:E3.y},{x:690,y:1000}],
-    nodeIds:[E0.id,E1.id,E2.id,E3.id], isCulDeSac:false});
-  // Bottom arterial
-  roads.push({id:5, name:'', type:'ST',
-    points:[{x:30,y:1180},{x:F0.x,y:F0.y},{x:F1.x,y:F1.y},{x:F2.x,y:F2.y},{x:F3.x,y:F3.y},{x:690,y:1180}],
-    nodeIds:[F0.id,F1.id,F2.id,F3.id], isCulDeSac:false});
-
-  // ===== Vertical connectors (evenly spaced) =====
-  // Left vertical
-  roads.push({id:10, name:'', type:'ST',
-    points:[{x:120,y:40},{x:A0.x,y:A0.y},{x:B0.x,y:B0.y},{x:C0.x,y:C0.y},{x:D0.x,y:D0.y},{x:E0.x,y:E0.y},{x:F0.x,y:F0.y},{x:120,y:1260}],
-    nodeIds:[A0.id,B0.id,C0.id,D0.id,E0.id,F0.id], isCulDeSac:false});
-  // Mid-left vertical
-  roads.push({id:11, name:'', type:'AVE',
-    points:[{x:280,y:40},{x:A1.x,y:A1.y},{x:B1.x,y:B1.y},{x:C1.x,y:C1.y},{x:D1.x,y:D1.y},{x:E1.x,y:E1.y},{x:F1.x,y:F1.y},{x:280,y:1260}],
-    nodeIds:[A1.id,B1.id,C1.id,D1.id,E1.id,F1.id], isCulDeSac:false});
-  // Mid-right vertical
-  roads.push({id:12, name:'', type:'ST',
-    points:[{x:440,y:40},{x:A2.x,y:A2.y},{x:B2.x,y:B2.y},{x:C2.x,y:C2.y},{x:D2.x,y:D2.y},{x:E2.x,y:E2.y},{x:F2.x,y:F2.y},{x:440,y:1260}],
-    nodeIds:[A2.id,B2.id,C2.id,D2.id,E2.id,F2.id], isCulDeSac:false});
-  // Right vertical
-  roads.push({id:13, name:'', type:'AVE',
-    points:[{x:600,y:40},{x:A3.x,y:A3.y},{x:B3.x,y:B3.y},{x:C3.x,y:C3.y},{x:D3.x,y:D3.y},{x:E3.x,y:E3.y},{x:F3.x,y:F3.y},{x:600,y:1260}],
-    nodeIds:[A3.id,B3.id,C3.id,D3.id,E3.id,F3.id], isCulDeSac:false});
-
-  // ===== Cul-de-sacs distributed in the blocks (roughly half the short streets) =====
-  // Upper area
-  roads.push({id:20, name:'', type:'CT',
-    points:[{x:A0.x,y:A0.y},{x:80,y:220},{x:50,y:260}],
-    nodeIds:[A0.id], isCulDeSac:true});
-  roads.push({id:21, name:'', type:'LN',
-    points:[{x:A1.x,y:A1.y},{x:320,y:220},{x:350,y:260}],
-    nodeIds:[A1.id], isCulDeSac:true});
-  roads.push({id:22, name:'', type:'PL',
-    points:[{x:A2.x,y:A2.y},{x:480,y:200},{x:520,y:240}],
-    nodeIds:[A2.id], isCulDeSac:true});
-  roads.push({id:23, name:'', type:'CT',
-    points:[{x:A3.x,y:A3.y},{x:660,y:220},{x:690,y:260}],
-    nodeIds:[A3.id], isCulDeSac:true});
-
-  // Mid-upper blocks
-  roads.push({id:24, name:'', type:'DR',
-    points:[{x:B1.x,y:B1.y},{x:200,y:420},{x:170,y:460}],
-    nodeIds:[B1.id], isCulDeSac:true});
-  roads.push({id:25, name:'', type:'WAY',
-    points:[{x:B2.x,y:B2.y},{x:500,y:420},{x:540,y:460}],
-    nodeIds:[B2.id], isCulDeSac:true});
-
-  // Mid blocks
-  roads.push({id:26, name:'', type:'CT',
-    points:[{x:C0.x,y:C0.y},{x:60,y:640},{x:40,y:680}],
-    nodeIds:[C0.id], isCulDeSac:true});
-  roads.push({id:27, name:'', type:'LN',
-    points:[{x:C2.x,y:C2.y},{x:380,y:640},{x:350,y:680}],
-    nodeIds:[C2.id], isCulDeSac:true});
-  roads.push({id:28, name:'', type:'PL',
-    points:[{x:C3.x,y:C3.y},{x:660,y:640},{x:690,y:680}],
-    nodeIds:[C3.id], isCulDeSac:true});
-
-  // Mid-lower
-  roads.push({id:29, name:'', type:'DR',
-    points:[{x:D1.x,y:D1.y},{x:200,y:860},{x:170,y:900}],
-    nodeIds:[D1.id], isCulDeSac:true});
-  roads.push({id:30, name:'', type:'WAY',
-    points:[{x:D2.x,y:D2.y},{x:500,y:860},{x:540,y:900}],
-    nodeIds:[D2.id], isCulDeSac:true});
-
-  // Lower area
-  roads.push({id:31, name:'', type:'CT',
-    points:[{x:E0.x,y:E0.y},{x:60,y:1080},{x:40,y:1120}],
-    nodeIds:[E0.id], isCulDeSac:true});
-  roads.push({id:32, name:'', type:'LN',
-    points:[{x:E1.x,y:E1.y},{x:320,y:1080},{x:350,y:1120}],
-    nodeIds:[E1.id], isCulDeSac:true});
-  roads.push({id:33, name:'', type:'PL',
-    points:[{x:E3.x,y:E3.y},{x:660,y:1080},{x:690,y:1120}],
-    nodeIds:[E3.id], isCulDeSac:true});
-
-  // Bottom spurs
-  roads.push({id:34, name:'', type:'CT',
-    points:[{x:F1.x,y:F1.y},{x:320,y:1230},{x:350,y:1260}],
-    nodeIds:[F1.id], isCulDeSac:true});
-  roads.push({id:35, name:'', type:'LN',
-    points:[{x:F2.x,y:F2.y},{x:500,y:1230},{x:540,y:1260}],
-    nodeIds:[F2.id], isCulDeSac:true});
+  const TL = N(70, 90), TR = N(650, 90), BL = N(70, 1190), BR = N(650, 1190);
+  const TM = N(360, 90), BM = N(360, 1190), LM = N(70, 640), RM = N(650, 640);
+  roads.push({id:0, name:'', type:'AVE', points:[{x:20,y:90},{x:TL.x,y:TL.y},{x:TM.x,y:TM.y},{x:TR.x,y:TR.y},{x:700,y:90}], nodeIds:[TL.id,TM.id,TR.id], isCulDeSac:false});
+  roads.push({id:1, name:'', type:'AVE', points:[{x:20,y:1190},{x:BL.x,y:BL.y},{x:BM.x,y:BM.y},{x:BR.x,y:BR.y},{x:700,y:1190}], nodeIds:[BL.id,BM.id,BR.id], isCulDeSac:false});
+  roads.push({id:2, name:'', type:'ST', points:[{x:70,y:30},{x:TL.x,y:TL.y},{x:LM.x,y:LM.y},{x:BL.x,y:BL.y},{x:70,y:1250}], nodeIds:[TL.id,LM.id,BL.id], isCulDeSac:false});
+  roads.push({id:3, name:'', type:'ST', points:[{x:650,y:30},{x:TR.x,y:TR.y},{x:RM.x,y:RM.y},{x:BR.x,y:BR.y},{x:650,y:1250}], nodeIds:[TR.id,RM.id,BR.id], isCulDeSac:false});
+  const RT_N = N(360, 300), RT_E = N(520, 640), RT_S = N(360, 980), RT_W = N(200, 640);
+  roads.push({id:10, name:'', type:'DR', points:[{x:RT_W.x,y:RT_W.y},{x:220,y:420},{x:280,y:320},{x:RT_N.x,y:RT_N.y},{x:440,y:320},{x:500,y:420},{x:RT_E.x,y:RT_E.y},{x:500,y:860},{x:440,y:960},{x:RT_S.x,y:RT_S.y},{x:280,y:960},{x:220,y:860},{x:RT_W.x,y:RT_W.y}], nodeIds:[RT_W.id,RT_N.id,RT_E.id,RT_S.id], isCulDeSac:false});
+  const UO_C = N(360, 380);
+  roads.push({id:11, name:'', type:'CIR', points:[{x:RT_N.x,y:RT_N.y},{x:300,y:340},{x:280,y:400},{x:UO_C.x,y:UO_C.y},{x:420,y:400},{x:440,y:340},{x:RT_N.x,y:RT_N.y}], nodeIds:[RT_N.id,UO_C.id], isCulDeSac:false});
+  const LO_C = N(360, 900);
+  roads.push({id:12, name:'', type:'CIR', points:[{x:RT_S.x,y:RT_S.y},{x:300,y:940},{x:280,y:880},{x:LO_C.x,y:LO_C.y},{x:420,y:880},{x:440,y:940},{x:RT_S.x,y:RT_S.y}], nodeIds:[RT_S.id,LO_C.id], isCulDeSac:false});
+  roads.push({id:20, name:'', type:'AVE', points:[{x:TM.x,y:TM.y},{x:360,y:180},{x:RT_N.x,y:RT_N.y}], nodeIds:[TM.id,RT_N.id], isCulDeSac:false});
+  roads.push({id:21, name:'', type:'AVE', points:[{x:BM.x,y:BM.y},{x:360,y:1100},{x:RT_S.x,y:RT_S.y}], nodeIds:[BM.id,RT_S.id], isCulDeSac:false});
+  roads.push({id:22, name:'', type:'ST', points:[{x:LM.x,y:LM.y},{x:130,y:640},{x:RT_W.x,y:RT_W.y}], nodeIds:[LM.id,RT_W.id], isCulDeSac:false});
+  roads.push({id:23, name:'', type:'ST', points:[{x:RM.x,y:RM.y},{x:590,y:640},{x:RT_E.x,y:RT_E.y}], nodeIds:[RM.id,RT_E.id], isCulDeSac:false});
+  roads.push({id:30, name:'', type:'CT', points:[{x:RT_W.x,y:RT_W.y},{x:160,y:500},{x:130,y:420}], nodeIds:[RT_W.id], isCulDeSac:true});
+  roads.push({id:31, name:'', type:'CT', points:[{x:RT_E.x,y:RT_E.y},{x:560,y:500},{x:590,y:420}], nodeIds:[RT_E.id], isCulDeSac:true});
+  roads.push({id:32, name:'', type:'LN', points:[{x:RT_W.x,y:RT_W.y},{x:160,y:780},{x:130,y:860}], nodeIds:[RT_W.id], isCulDeSac:true});
+  roads.push({id:33, name:'', type:'LN', points:[{x:RT_E.x,y:RT_E.y},{x:560,y:780},{x:590,y:860}], nodeIds:[RT_E.id], isCulDeSac:true});
+  const R1 = N(280, 480);
+  roads.push({id:34, name:'', type:'ST', points:[{x:UO_C.x,y:UO_C.y},{x:R1.x,y:R1.y},{x:RT_W.x,y:RT_W.y}], nodeIds:[UO_C.id,R1.id,RT_W.id], isCulDeSac:false});
+  const R2 = N(440, 800);
+  roads.push({id:35, name:'', type:'ST', points:[{x:LO_C.x,y:LO_C.y},{x:R2.x,y:R2.y},{x:RT_E.x,y:RT_E.y}], nodeIds:[LO_C.id,R2.id,RT_E.id], isCulDeSac:false});
+  roads.push({id:36, name:'', type:'PL', points:[{x:UO_C.x,y:UO_C.y},{x:360,y:450},{x:360,y:510}], nodeIds:[UO_C.id], isCulDeSac:true});
+  roads.push({id:37, name:'', type:'PL', points:[{x:LO_C.x,y:LO_C.y},{x:360,y:830},{x:360,y:770}], nodeIds:[LO_C.id], isCulDeSac:true});
 }
 function generateLevel3(){
   nodes = []; roads = [];
