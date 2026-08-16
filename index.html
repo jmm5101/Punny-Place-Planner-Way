@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Punny Place Planner Way</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -10,98 +10,91 @@
   <style>
     :root {
       --grass: #3d7a3a;
-      --asphalt: #1e1e1e;
+      --asphalt: #1c1c1c;
       --yellow: #f0c800;
       --sign-green: #2d6b2d;
-      --pole: #8a8a8a;
-      --ui-bg: #141414;
-      --ui-panel: #222;
+      --ui-bg: #121212;
       --accent: #4caf50;
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
+    html, body {
+      height: 100%;
       font-family: 'Overpass', system-ui, sans-serif;
-      background: #0d0d0d;
+      background: #0a0a0a;
       color: #eee;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
       overflow: hidden;
     }
-
+    body {
+      display: flex;
+      flex-direction: column;
+    }
     header {
       background: var(--ui-bg);
-      border-bottom: 3px solid #333;
-      padding: 8px 14px;
+      border-bottom: 2px solid #333;
+      padding: 6px 10px;
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 8px;
       flex-wrap: wrap;
-      z-index: 30;
       flex-shrink: 0;
+      z-index: 40;
     }
-
-    /* Game title as dual street signs */
     .title-signs {
       display: flex;
       flex-direction: column;
-      gap: 3px;
-      margin-right: 8px;
+      gap: 2px;
     }
     .title-sign {
       background: linear-gradient(to bottom, #3a8a3a, #2a6a2a);
       color: #fff;
       font-weight: 800;
-      font-size: 0.78rem;
-      letter-spacing: 1px;
+      font-size: 0.65rem;
+      letter-spacing: 0.6px;
       text-transform: uppercase;
-      padding: 3px 10px;
-      border: 2px solid #c9a800;
+      padding: 2px 7px;
+      border: 1.5px solid #c9a800;
       border-radius: 2px;
       white-space: nowrap;
-      box-shadow: 0 2px 0 #1a4a1a;
-      line-height: 1.2;
+      box-shadow: 0 1px 0 #1a4a1a;
+      line-height: 1.15;
     }
-    .title-sign.top { transform: rotate(-1.5deg); }
-    .title-sign.bottom { transform: rotate(1deg); margin-left: 6px; }
-
+    .title-sign.top { transform: rotate(-1.2deg); }
+    .title-sign.bottom { transform: rotate(0.8deg); margin-left: 4px; }
     .version {
-      font-size: 0.7rem;
+      font-size: 0.6rem;
       color: #666;
       font-weight: 600;
-      margin-left: 4px;
     }
-
     .level-tabs {
       display: flex;
-      gap: 5px;
+      gap: 4px;
+      flex: 1;
+      justify-content: center;
     }
     .level-tabs button {
-      font-family: 'Overpass', sans-serif;
+      font-family: inherit;
       font-weight: 600;
-      font-size: 0.8rem;
-      padding: 5px 12px;
-      border: 2px solid #444;
+      font-size: 0.7rem;
+      padding: 4px 8px;
+      border: 1.5px solid #444;
       background: #1a1a1a;
       color: #bbb;
       cursor: pointer;
-      border-radius: 4px;
+      border-radius: 3px;
+      white-space: nowrap;
     }
-    .level-tabs button:hover { border-color: #666; color: #fff; }
     .level-tabs button.active {
       background: var(--accent);
       border-color: #2e7d32;
       color: #000;
     }
-
     .status {
-      margin-left: auto;
-      font-size: 0.8rem;
-      color: #888;
+      font-size: 0.65rem;
+      color: #777;
+      width: 100%;
+      text-align: center;
+      margin-top: 2px;
     }
-
     #game-container {
       flex: 1;
       position: relative;
@@ -111,95 +104,74 @@
       align-items: center;
       justify-content: center;
     }
-
     canvas {
       display: block;
       image-rendering: pixelated;
       cursor: crosshair;
-      max-width: 100%;
-      max-height: 100%;
       background: var(--grass);
     }
-
-    /* Naming modal */
-    .modal-overlay {
-      position: absolute;
-      inset: 0;
-      background: rgba(0,0,0,0.7);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 50;
-    }
-    .modal-overlay.open { display: flex; }
-
-    .modal {
-      background: var(--ui-panel);
-      border: 3px solid #444;
-      border-radius: 8px;
-      padding: 18px 22px;
-      width: min(400px, 92vw);
-      box-shadow: 0 12px 40px rgba(0,0,0,0.6);
-    }
-    .modal h2 { font-size: 1.05rem; margin-bottom: 12px; }
-    .modal label { display: block; font-size: 0.75rem; color: #999; margin-bottom: 3px; }
-    .modal input, .modal select {
-      width: 100%;
-      font-family: 'Overpass', sans-serif;
-      font-size: 0.95rem;
-      padding: 7px 10px;
-      margin-bottom: 10px;
-      border: 2px solid #555;
-      background: #111;
-      color: #fff;
-      border-radius: 4px;
-    }
-    .modal input:focus, .modal select:focus { outline: none; border-color: var(--accent); }
-    .modal-actions { display: flex; gap: 8px; margin-top: 6px; }
-    .modal-actions button {
-      font-family: 'Overpass', sans-serif;
-      font-weight: 700;
-      font-size: 0.85rem;
-      padding: 7px 14px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    .btn-primary { background: var(--accent); color: #000; }
-    .btn-primary:hover { background: #66bb6a; }
-    .btn-secondary { background: #444; color: #eee; }
-    .btn-secondary:hover { background: #555; }
-
-    /* Node sign popup – photo style */
-    .sign-overlay {
+    .modal-overlay, .sign-overlay {
       position: absolute;
       inset: 0;
       background: rgba(0,0,0,0.75);
       display: none;
       align-items: center;
       justify-content: center;
-      z-index: 60;
+      z-index: 50;
+      padding: 12px;
     }
-    .sign-overlay.open { display: flex; }
-
+    .modal-overlay.open, .sign-overlay.open { display: flex; }
+    .modal {
+      background: #222;
+      border: 2px solid #444;
+      border-radius: 8px;
+      padding: 14px 16px;
+      width: min(340px, 100%);
+      max-height: 90%;
+      overflow-y: auto;
+    }
+    .modal h2 { font-size: 0.95rem; margin-bottom: 10px; }
+    .modal label { display: block; font-size: 0.7rem; color: #999; margin-bottom: 2px; }
+    .modal input, .modal select {
+      width: 100%;
+      font-family: inherit;
+      font-size: 0.9rem;
+      padding: 7px 8px;
+      margin-bottom: 8px;
+      border: 2px solid #555;
+      background: #111;
+      color: #fff;
+      border-radius: 4px;
+    }
+    .modal-actions { display: flex; gap: 8px; margin-top: 4px; }
+    .modal-actions button {
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 0.8rem;
+      padding: 7px 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .btn-primary { background: var(--accent); color: #000; }
+    .btn-secondary { background: #444; color: #eee; }
     .sign-stage {
       position: relative;
-      width: min(320px, 88vw);
-      height: 380px;
+      width: min(280px, 92vw);
+      height: 340px;
       background: linear-gradient(to bottom, #6bb3e8 0%, #4a9ad4 45%, #3a7bb0 100%);
-      border: 4px solid #222;
+      border: 3px solid #222;
       border-radius: 6px;
       overflow: hidden;
-      box-shadow: 0 16px 50px rgba(0,0,0,0.7);
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding-top: 32px;
+      padding-top: 28px;
     }
     .pole {
       position: absolute;
       bottom: 0;
-      width: 26px;
+      width: 22px;
       height: 78%;
       background: linear-gradient(to right, #6e6e6e, #9a9a9a 40%, #7a7a7a 60%, #5a5a5a);
       border-radius: 3px 3px 0 0;
@@ -210,59 +182,56 @@
       z-index: 2;
       background: linear-gradient(to bottom, #3a8a3a, #2a6a2a);
       color: white;
-      font-family: 'Overpass', sans-serif;
       font-weight: 800;
-      font-size: 1.25rem;
-      letter-spacing: 1.2px;
+      font-size: 1.05rem;
+      letter-spacing: 1px;
       text-transform: uppercase;
-      padding: 9px 18px;
-      min-width: 170px;
+      padding: 7px 14px;
+      min-width: 150px;
       text-align: center;
-      border: 3px solid #c9a800;
+      border: 2.5px solid #c9a800;
       border-radius: 2px;
-      box-shadow: 0 3px 0 #1a4a1a, 0 6px 12px rgba(0,0,0,0.35);
-      margin-bottom: 12px;
+      box-shadow: 0 2px 0 #1a4a1a, 0 4px 10px rgba(0,0,0,0.35);
+      margin-bottom: 10px;
       white-space: nowrap;
-      max-width: 260px;
+      max-width: 230px;
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    .sign-blade.top { transform: rotate(-2deg); margin-left: -14px; }
-    .sign-blade.bottom { transform: rotate(1.5deg); margin-left: 10px; }
-
+    .sign-blade.top { transform: rotate(-1.8deg); margin-left: -12px; }
+    .sign-blade.bottom { transform: rotate(1.2deg); margin-left: 8px; }
     .sign-controls {
       position: absolute;
-      bottom: 14px;
+      bottom: 12px;
       left: 0; right: 0;
       display: flex;
       justify-content: center;
-      gap: 10px;
+      gap: 8px;
       z-index: 5;
     }
     .sign-controls button {
-      font-family: 'Overpass', sans-serif;
+      font-family: inherit;
       font-weight: 700;
-      font-size: 0.9rem;
-      padding: 7px 16px;
+      font-size: 0.8rem;
+      padding: 6px 12px;
       border: 2px solid #333;
-      border-radius: 5px;
+      border-radius: 4px;
       cursor: pointer;
       background: #222;
       color: #fff;
     }
     .sign-controls .btn-reverse { background: #1565c0; border-color: #0d47a1; }
-    .sign-controls .btn-reverse:hover { background: #1976d2; }
-    .sign-controls button:hover { background: #333; }
-
     .hint {
       position: absolute;
-      bottom: 10px;
-      left: 10px;
-      background: rgba(0,0,0,0.75);
-      color: #bbb;
-      font-size: 0.75rem;
-      padding: 5px 10px;
-      border-radius: 4px;
+      bottom: 6px;
+      left: 6px;
+      right: 6px;
+      background: rgba(0,0,0,0.7);
+      color: #aaa;
+      font-size: 0.65rem;
+      padding: 4px 8px;
+      border-radius: 3px;
+      text-align: center;
       pointer-events: none;
       z-index: 10;
     }
@@ -274,27 +243,23 @@
       <div class="title-sign top">Punny Place</div>
       <div class="title-sign bottom">Planner Way</div>
     </div>
-    <span class="version">v1.2</span>
-
+    <span class="version">v1.3</span>
     <div class="level-tabs">
       <button data-level="1" class="active">1 · Cul-De-Sac</button>
-      <button data-level="2">2 · The Burbs</button>
-      <button data-level="3">3 · Lots & Blocks</button>
+      <button data-level="2">2 · Burbs</button>
+      <button data-level="3">3 · Blocks</button>
     </div>
-    <div class="status" id="status">Click a road to name it · Click a yellow node for the sign</div>
+    <div class="status" id="status">Tap a street to name · Tap yellow node for sign</div>
   </header>
-
   <div id="game-container">
     <canvas id="map"></canvas>
-    <div class="hint">Click black streets to name · Yellow circles = intersections (street signs)</div>
+    <div class="hint">Black = asphalt · Yellow dots = intersections · Green tags = named streets</div>
   </div>
-
-  <!-- Name modal -->
   <div class="modal-overlay" id="nameModal">
     <div class="modal">
       <h2>Name this street</h2>
       <label for="streetName">Street name</label>
-      <input type="text" id="streetName" placeholder="e.g. Punny" maxlength="16" autocomplete="off" />
+      <input type="text" id="streetName" placeholder="e.g. Punny" maxlength="14" autocomplete="off" />
       <label for="streetType">Type</label>
       <select id="streetType">
         <option value="ALY">Alley, ALY</option>
@@ -314,520 +279,305 @@
         <option value="WAY">Way, WAY</option>
       </select>
       <div class="modal-actions">
-        <button class="btn-primary" id="saveName">Save Name</button>
+        <button class="btn-primary" id="saveName">Save</button>
         <button class="btn-secondary" id="cancelName">Cancel</button>
       </div>
     </div>
   </div>
-
-  <!-- Intersection sign popup -->
   <div class="sign-overlay" id="signOverlay">
     <div class="sign-stage">
       <div class="pole"></div>
       <div class="sign-blade top" id="signTop">—</div>
       <div class="sign-blade bottom" id="signBottom">—</div>
       <div class="sign-controls">
-        <button class="btn-reverse" id="btnReverse">↔ Reverse Order</button>
+        <button class="btn-reverse" id="btnReverse">↔ Reverse</button>
         <button id="btnCloseSign">Close</button>
       </div>
     </div>
   </div>
-
   <script>
-    // ============================================================
-    // Punny Place Planner Way  –  v1.2
-    // ============================================================
-
-    const VERSION = '1.2';
+    const VERSION = '1.3';
     const canvas = document.getElementById('map');
     const ctx = canvas.getContext('2d');
     const container = document.getElementById('game-container');
-
-    // Logical map size (16:9 aspect)
-    const MAP_W = 1280;
-    const MAP_H = 720;
-
-    let nodes = [];   // only true intersections {id, x, y}
-    let roads = [];   // continuous streets {id, name, type, points:[{x,y}], nodeIds:[], isCulDeSac:bool}
+    const MAP_W = 720;
+    const MAP_H = 1280;
+    let nodes = [];
+    let roads = [];
     let selectedRoadId = null;
     let signOrder = [0, 1];
     let currentSignRoads = [];
-
     const TYPE_FULL = {
       ALY:'ALY', AVE:'AVE', BLVD:'BLVD', CIR:'CIR', CT:'CT',
       DR:'DR', HWY:'HWY', LN:'LN', PKWY:'PKWY', PL:'PL',
       RD:'RD', ST:'ST', TER:'TER', TRL:'TRL', WAY:'WAY'
     };
-
-    // ---------- Level 1: Cul-De-Sac (sequential tree) ----------
-    // One main road. Street 1 Ts off main. Street 2 Ts off Street 1. …
-    // By Street 10 a driver must have driven the main + all 9 previous streets.
+    function addNode(x, y, list, counter) {
+      const n = { id: counter.v++, x, y };
+      list.push(n);
+      return n;
+    }
     function generateLevel1() {
-      nodes = [];
-      roads = [];
-      let nid = 0, rid = 0;
-      const addNode = (x, y) => {
-        const n = { id: nid++, x, y };
-        nodes.push(n);
-        return n;
-      };
-
-      // Main road across bottom (slight curve)
-      const mainNodes = [];
-      for (let i = 0; i < 4; i++) {
-        mainNodes.push(addNode(160 + i * 280, 580 + Math.sin(i * 0.8) * 18));
+      nodes = []; roads = [];
+      const c = { v: 0 };
+      const main = [];
+      for (let i = 0; i < 5; i++) {
+        main.push(addNode(90 + i * 135, 1120 + Math.sin(i * 0.7) * 12, nodes, c));
       }
       roads.push({
-        id: rid++, name: '', type: 'HWY',
-        points: [
-          {x: 40, y: 590},
-          ...mainNodes.map(n => ({x: n.x, y: n.y})),
-          {x: 1240, y: 575}
-        ],
-        nodeIds: mainNodes.map(n => n.id),
-        isCulDeSac: false
+        id: 0, name: '', type: 'HWY',
+        points: [{x:30,y:1130}, ...main.map(n=>({x:n.x,y:n.y})), {x:690,y:1115}],
+        nodeIds: main.map(n=>n.id), isCulDeSac: false
       });
-
-      // Sequential chain of 10 streets. Each new street branches from the previous via a T.
-      // We start from the first main-road node and snake northward with alternating sides.
-      let prevNode = mainNodes[0];
-      let prevRoadId = 0;
-      const side = [1, -1, 1, -1, 1, -1, 1, -1, 1, -1]; // alternate left/right
-
-      for (let s = 0; s < 10; s++) {
-        const dir = side[s];
-        // mid T node and end node
-        const mid = addNode(
-          prevNode.x + dir * (70 + s * 8),
-          prevNode.y - (95 + s * 6)
-        );
-        const end = addNode(
-          mid.x + dir * (55 + s * 5),
-          mid.y - (80 + s * 4)
-        );
-
-        // the continuous street from prevNode → mid → end → bulb
-        const bulbX = end.x + dir * 40;
-        const bulbY = end.y - 55;
+      let prev = main[1];
+      const dirs = [1, -1, 1, -1, 1, -1, 1, -1, 1];
+      for (let s = 0; s < 9; s++) {
+        const dir = dirs[s];
+        const mid = addNode(prev.x + dir * (55 + s * 6), prev.y - (95 + s * 8), nodes, c);
+        const end = addNode(mid.x + dir * (40 + s * 4), mid.y - (85 + s * 6), nodes, c);
+        const bulb = { x: end.x + dir * 28, y: end.y - 50 };
         roads.push({
-          id: rid++,
-          name: '',
-          type: ['ST','DR','LN','WAY','CT','PL','TER','RD','ALY','CIR'][s],
+          id: s + 1, name: '', type: ['ST','DR','LN','WAY','CT','PL','TER','RD','ALY'][s],
           points: [
-            {x: prevNode.x, y: prevNode.y},
-            {x: (prevNode.x + mid.x) / 2 + dir * 15, y: (prevNode.y + mid.y) / 2},
-            {x: mid.x, y: mid.y},
-            {x: (mid.x + end.x) / 2, y: (mid.y + end.y) / 2 - 10},
-            {x: end.x, y: end.y},
-            {x: bulbX, y: bulbY}
-          ],
-          nodeIds: [prevNode.id, mid.id, end.id],
-          isCulDeSac: true
-        });
-
-        // short spur cul-de-sac from the mid T (every other street)
-        if (s % 2 === 0) {
-          const spurDir = -dir;
-          roads.push({
-            id: rid++,
-            name: '',
-            type: 'CT',
-            points: [
-              {x: mid.x, y: mid.y},
-              {x: mid.x + spurDir * 70, y: mid.y - 15},
-              {x: mid.x + spurDir * 110, y: mid.y - 5}
-            ],
-            nodeIds: [mid.id],
-            isCulDeSac: true
-          });
-        }
-
-        // next street branches from the end node of this street
-        prevNode = end;
-      }
-    }
-
-    // ---------- Level 2: The Burbs ----------
-    // Well-connected network, ~50% of streets end in cul-de-sacs
-    function generateLevel2() {
-      nodes = [];
-      roads = [];
-      let nid = 0, rid = 0;
-      const addNode = (x, y) => {
-        const n = { id: nid++, x, y };
-        nodes.push(n);
-        return n;
-      };
-
-      // Central collector (S-curve)
-      const collector = [];
-      for (let i = 0; i < 8; i++) {
-        collector.push(addNode(110 + i * 145, 340 + Math.sin(i * 0.9) * 45));
-      }
-      roads.push({
-        id: rid++, name: '', type: 'AVE',
-        points: [{x:40,y:340}, ...collector.map(n=>({x:n.x,y:n.y})), {x:1240,y:350}],
-        nodeIds: collector.map(n => n.id),
-        isCulDeSac: false
-      });
-
-      // Cross streets that fully connect (not cul-de-sacs)
-      const crossIdx = [1, 3, 5, 6];
-      crossIdx.forEach((ci, k) => {
-        const base = collector[ci];
-        const north = addNode(base.x + (k%2?20:-20), 160);
-        const south = addNode(base.x + (k%2?-15:15), 540);
-        roads.push({
-          id: rid++, name: '', type: 'ST',
-          points: [
-            {x: north.x, y: 60},
-            {x: north.x, y: north.y},
-            {x: base.x, y: base.y},
-            {x: south.x, y: south.y},
-            {x: south.x, y: 680}
-          ],
-          nodeIds: [north.id, base.id, south.id],
-          isCulDeSac: false
-        });
-      });
-
-      // Many branching streets that end in cul-de-sacs (~50%)
-      const branchSpecs = [
-        {from:0, dx:-40, dy:-110, spur:true},
-        {from:0, dx:30, dy:120, spur:false},
-        {from:2, dx:-50, dy:-130, spur:true},
-        {from:2, dx:40, dy:110, spur:true},
-        {from:4, dx:-35, dy:-100, spur:false},
-        {from:4, dx:45, dy:125, spur:true},
-        {from:7, dx:-30, dy:-115, spur:true},
-        {from:7, dx:25, dy:105, spur:false},
-        {from:5, dx:60, dy:-90, spur:true},
-        {from:3, dx:-55, dy:95, spur:true},
-      ];
-
-      branchSpecs.forEach((b, idx) => {
-        const base = collector[b.from];
-        const mid = addNode(base.x + b.dx, base.y + b.dy);
-        const end = addNode(mid.x + b.dx * 0.55, mid.y + b.dy * 0.7);
-        const bulbX = end.x + b.dx * 0.35;
-        const bulbY = end.y + b.dy * 0.4;
-        roads.push({
-          id: rid++, name: '', type: ['DR','LN','WAY','CT','PL','TER','RD','ST','ALY','CIR'][idx],
-          points: [
-            {x:base.x, y:base.y},
-            {x:(base.x+mid.x)/2 + b.dx*0.1, y:(base.y+mid.y)/2},
+            {x:prev.x, y:prev.y},
+            {x:(prev.x+mid.x)/2 + dir*12, y:(prev.y+mid.y)/2},
             {x:mid.x, y:mid.y},
+            {x:(mid.x+end.x)/2, y:(mid.y+end.y)/2 - 8},
             {x:end.x, y:end.y},
-            {x:bulbX, y:bulbY}
+            bulb
           ],
-          nodeIds: [base.id, mid.id, end.id],
-          isCulDeSac: true
+          nodeIds: [prev.id, mid.id, end.id], isCulDeSac: true
         });
-        if (b.spur) {
-          const sd = b.dx > 0 ? -1 : 1;
+        if (s % 2 === 0) {
+          const sd = -dir;
           roads.push({
-            id: rid++, name: '', type: 'CT',
-            points: [
-              {x:mid.x, y:mid.y},
-              {x:mid.x + sd * 80, y:mid.y - 20},
-              {x:mid.x + sd * 120, y:mid.y - 10}
-            ],
-            nodeIds: [mid.id],
-            isCulDeSac: true
+            id: 100 + s, name: '', type: 'CT',
+            points: [{x:mid.x, y:mid.y}, {x:mid.x + sd*55, y:mid.y - 12}, {x:mid.x + sd*90, y:mid.y - 4}],
+            nodeIds: [mid.id], isCulDeSac: true
           });
         }
+        prev = end;
+      }
+    }
+    function generateLevel2() {
+      nodes = []; roads = [];
+      const c = { v: 0 };
+      const col = [];
+      for (let i = 0; i < 7; i++) {
+        col.push(addNode(360 + Math.sin(i * 0.85) * 55, 140 + i * 160, nodes, c));
+      }
+      roads.push({
+        id: 0, name: '', type: 'AVE',
+        points: [{x: col[0].x, y: 40}, ...col.map(n=>({x:n.x,y:n.y})), {x: col[6].x, y: 1240}],
+        nodeIds: col.map(n=>n.id), isCulDeSac: false
+      });
+      const leftSpecs = [
+        {from:1, len:140, angle:-0.9, cul:true},
+        {from:2, len:160, angle:-1.1, cul:true},
+        {from:3, len:130, angle:-0.7, cul:false},
+        {from:4, len:150, angle:-1.0, cul:true},
+        {from:5, len:120, angle:-0.8, cul:true}
+      ];
+      leftSpecs.forEach((sp, i) => {
+        const base = col[sp.from];
+        const mid = addNode(base.x + Math.cos(sp.angle) * (sp.len * 0.55), base.y + Math.sin(sp.angle) * (sp.len * 0.55), nodes, c);
+        const end = addNode(base.x + Math.cos(sp.angle) * sp.len, base.y + Math.sin(sp.angle) * sp.len, nodes, c);
+        const pts = [{x:base.x, y:base.y}, {x:(base.x+mid.x)/2, y:(base.y+mid.y)/2 - 8}, {x:mid.x, y:mid.y}, {x:end.x, y:end.y}];
+        if (sp.cul) pts.push({x: end.x + Math.cos(sp.angle) * 35, y: end.y + Math.sin(sp.angle) * 35});
+        roads.push({id: 10 + i, name: '', type: ['DR','LN','WAY','CT','PL'][i], points: pts, nodeIds: [base.id, mid.id, end.id], isCulDeSac: sp.cul});
+        if (i % 2 === 0 && sp.cul) {
+          roads.push({id: 50 + i, name: '', type: 'CT', points: [{x:mid.x, y:mid.y}, {x:mid.x - 70, y:mid.y + 20}, {x:mid.x - 105, y:mid.y + 10}], nodeIds: [mid.id], isCulDeSac: true});
+        }
+      });
+      const rightSpecs = [
+        {from:1, len:135, angle:0.85, cul:true},
+        {from:2, len:155, angle:1.05, cul:false},
+        {from:3, len:145, angle:0.75, cul:true},
+        {from:4, len:125, angle:0.95, cul:true},
+        {from:5, len:140, angle:0.8, cul:true}
+      ];
+      rightSpecs.forEach((sp, i) => {
+        const base = col[sp.from];
+        const mid = addNode(base.x + Math.cos(sp.angle) * (sp.len * 0.55), base.y + Math.sin(sp.angle) * (sp.len * 0.55), nodes, c);
+        const end = addNode(base.x + Math.cos(sp.angle) * sp.len, base.y + Math.sin(sp.angle) * sp.len, nodes, c);
+        const pts = [{x:base.x, y:base.y}, {x:(base.x+mid.x)/2, y:(base.y+mid.y)/2 + 6}, {x:mid.x, y:mid.y}, {x:end.x, y:end.y}];
+        if (sp.cul) pts.push({x: end.x + Math.cos(sp.angle) * 35, y: end.y + Math.sin(sp.angle) * 35});
+        roads.push({id: 20 + i, name: '', type: ['ST','TER','RD','ALY','CIR'][i], points: pts, nodeIds: [base.id, mid.id, end.id], isCulDeSac: sp.cul});
+      });
+      const cross = addNode(220, 920, nodes, c);
+      roads.push({
+        id: 30, name: '', type: 'ST',
+        points: [{x:col[4].x, y:col[4].y}, {x:cross.x, y:cross.y}, {x:col[5].x - 40, y:col[5].y}],
+        nodeIds: [col[4].id, cross.id, col[5].id], isCulDeSac: false
       });
     }
-
-    // ---------- Level 3: Lots & Blocks ----------
-    // Rectangular grid, streets extend off the map, NO cul-de-sacs.
-    // Using 17 vertical lines × 10 horizontal lines for a comfortable 16:9 density.
     function generateLevel3() {
-      nodes = [];
-      roads = [];
-      let nid = 0, rid = 0;
-
-      const cols = 17; // vertical streets
-      const rows = 10; // horizontal streets
-      const marginX = 40;
-      const marginY = 40;
-      const usableW = MAP_W - marginX * 2;
-      const usableH = MAP_H - marginY * 2;
-      const stepX = usableW / (cols - 1);
-      const stepY = usableH / (rows - 1);
-
+      nodes = []; roads = [];
+      const c = { v: 0 };
+      const cols = 7, rows = 11;
+      const marginX = 50, marginY = 50;
+      const usableW = MAP_W - marginX * 2, usableH = MAP_H - marginY * 2;
+      const stepX = usableW / (cols - 1), stepY = usableH / (rows - 1);
       const grid = [];
       for (let r = 0; r < rows; r++) {
         grid[r] = [];
-        for (let c = 0; c < cols; c++) {
-          const n = { id: nid++, x: marginX + c * stepX, y: marginY + r * stepY };
-          nodes.push(n);
-          grid[r][c] = n;
+        for (let cIdx = 0; cIdx < cols; cIdx++) {
+          const n = addNode(marginX + cIdx * stepX, marginY + r * stepY, nodes, c);
+          grid[r][cIdx] = n;
         }
       }
-
-      // Horizontal continuous roads (extend slightly off left/right)
       for (let r = 0; r < rows; r++) {
-        const pts = [{ x: 10, y: grid[r][0].y }];
+        const pts = [{ x: 8, y: grid[r][0].y }];
         const nids = [];
-        for (let c = 0; c < cols; c++) {
-          pts.push({ x: grid[r][c].x, y: grid[r][c].y });
-          nids.push(grid[r][c].id);
+        for (let cIdx = 0; cIdx < cols; cIdx++) {
+          pts.push({ x: grid[r][cIdx].x, y: grid[r][cIdx].y });
+          nids.push(grid[r][cIdx].id);
         }
-        pts.push({ x: MAP_W - 10, y: grid[r][cols-1].y });
-        roads.push({
-          id: rid++, name: '', type: r % 2 === 0 ? 'ST' : 'AVE',
-          points: pts, nodeIds: nids, isCulDeSac: false
-        });
+        pts.push({ x: MAP_W - 8, y: grid[r][cols-1].y });
+        roads.push({id: r, name: '', type: r % 2 === 0 ? 'ST' : 'AVE', points: pts, nodeIds: nids, isCulDeSac: false});
       }
-
-      // Vertical continuous roads (extend slightly off top/bottom)
-      for (let c = 0; c < cols; c++) {
-        const pts = [{ x: grid[0][c].x, y: 10 }];
+      for (let cIdx = 0; cIdx < cols; cIdx++) {
+        const pts = [{ x: grid[0][cIdx].x, y: 8 }];
         const nids = [];
         for (let r = 0; r < rows; r++) {
-          pts.push({ x: grid[r][c].x, y: grid[r][c].y });
-          nids.push(grid[r][c].id);
+          pts.push({ x: grid[r][cIdx].x, y: grid[r][cIdx].y });
+          nids.push(grid[r][cIdx].id);
         }
-        pts.push({ x: grid[rows-1][c].x, y: MAP_H - 10 });
-        roads.push({
-          id: rid++, name: '', type: c % 3 === 0 ? 'AVE' : 'ST',
-          points: pts, nodeIds: nids, isCulDeSac: false
-        });
+        pts.push({ x: grid[rows-1][cIdx].x, y: MAP_H - 8 });
+        roads.push({id: 100 + cIdx, name: '', type: cIdx % 2 === 0 ? 'AVE' : 'ST', points: pts, nodeIds: nids, isCulDeSac: false});
       }
     }
-
-    // ---------- Drawing ----------
     function resize() {
-      // Keep internal resolution 16:9, scale to fit container
-      const cw = container.clientWidth;
-      const ch = container.clientHeight;
-      const scale = Math.min(cw / MAP_W, ch / MAP_H);
-      canvas.width = MAP_W;
-      canvas.height = MAP_H;
-      canvas.style.width = (MAP_W * scale) + 'px';
-      canvas.style.height = (MAP_H * scale) + 'px';
+      const cw = container.clientWidth, ch = container.clientHeight;
+      const scale = Math.min(cw / MAP_W, ch / MAP_H) * 0.98;
+      canvas.width = MAP_W; canvas.height = MAP_H;
+      canvas.style.width = Math.floor(MAP_W * scale) + 'px';
+      canvas.style.height = Math.floor(MAP_H * scale) + 'px';
       draw();
     }
-
     function drawGrass() {
       ctx.fillStyle = '#3d7a3a';
       ctx.fillRect(0, 0, MAP_W, MAP_H);
-      // light texture
-      ctx.fillStyle = 'rgba(0,0,0,0.035)';
-      for (let i = 0; i < 180; i++) {
-        ctx.fillRect((i * 73) % MAP_W, (i * 41) % MAP_H, 4, 4);
-      }
+      ctx.fillStyle = 'rgba(0,0,0,0.04)';
+      for (let i = 0; i < 220; i++) ctx.fillRect((i * 67) % MAP_W, (i * 43) % MAP_H, 3, 3);
     }
-
     function drawRoad(road) {
       const pts = road.points;
       if (pts.length < 2) return;
-
-      // Outer dark edge
       ctx.beginPath();
       ctx.moveTo(pts[0].x, pts[0].y);
       for (let i = 1; i < pts.length; i++) {
         if (i < pts.length - 1) {
-          const xc = (pts[i].x + pts[i+1].x) / 2;
-          const yc = (pts[i].y + pts[i+1].y) / 2;
+          const xc = (pts[i].x + pts[i+1].x) / 2, yc = (pts[i].y + pts[i+1].y) / 2;
           ctx.quadraticCurveTo(pts[i].x, pts[i].y, xc, yc);
-        } else {
-          ctx.lineTo(pts[i].x, pts[i].y);
-        }
+        } else ctx.lineTo(pts[i].x, pts[i].y);
       }
-      ctx.strokeStyle = '#0d0d0d';
-      ctx.lineWidth = 26;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      ctx.stroke();
-
-      // Asphalt
-      ctx.strokeStyle = '#1e1e1e';
-      ctx.lineWidth = 20;
-      ctx.stroke();
-
-      // Double yellow (dashed)
+      ctx.strokeStyle = '#0a0a0a'; ctx.lineWidth = 22; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.stroke();
+      ctx.strokeStyle = '#1c1c1c'; ctx.lineWidth = 16; ctx.stroke();
       ctx.beginPath();
       ctx.moveTo(pts[0].x, pts[0].y);
       for (let i = 1; i < pts.length; i++) {
         if (i < pts.length - 1) {
-          const xc = (pts[i].x + pts[i+1].x) / 2;
-          const yc = (pts[i].y + pts[i+1].y) / 2;
+          const xc = (pts[i].x + pts[i+1].x) / 2, yc = (pts[i].y + pts[i+1].y) / 2;
           ctx.quadraticCurveTo(pts[i].x, pts[i].y, xc, yc);
-        } else {
-          ctx.lineTo(pts[i].x, pts[i].y);
-        }
+        } else ctx.lineTo(pts[i].x, pts[i].y);
       }
-      ctx.strokeStyle = '#f0c800';
-      ctx.lineWidth = 2.2;
-      ctx.setLineDash([9, 7]);
-      ctx.stroke();
-      ctx.setLineDash([]);
-
-      // Cul-de-sac bulb (solid asphalt, NO island)
+      ctx.strokeStyle = '#f0c800'; ctx.lineWidth = 1.8; ctx.setLineDash([7, 6]); ctx.stroke(); ctx.setLineDash([]);
       if (road.isCulDeSac) {
         const last = pts[pts.length - 1];
-        // only draw bulb if the end is not near a node
-        const nearNode = nodes.some(n => Math.hypot(n.x - last.x, n.y - last.y) < 22);
-        if (!nearNode) {
+        if (!nodes.some(n => Math.hypot(n.x - last.x, n.y - last.y) < 20)) {
           ctx.beginPath();
-          ctx.arc(last.x, last.y, 32, 0, Math.PI * 2);
-          ctx.fillStyle = '#1e1e1e';
-          ctx.fill();
-          ctx.strokeStyle = '#0d0d0d';
-          ctx.lineWidth = 4;
-          ctx.stroke();
+          ctx.arc(last.x, last.y, 26, 0, Math.PI * 2);
+          ctx.fillStyle = '#1c1c1c'; ctx.fill();
+          ctx.strokeStyle = '#0a0a0a'; ctx.lineWidth = 3; ctx.stroke();
         }
       }
-
-      // Green street-name sign near the road (not on a node)
-      if (road.name) {
-        drawRoadSign(road);
-      }
+      if (road.name) drawRoadSign(road);
     }
-
     function drawRoadSign(road) {
-      // Place the sign at ~35% along the road, offset perpendicular so it sits beside the asphalt
       const pts = road.points;
-      const idx = Math.max(1, Math.floor(pts.length * 0.35));
-      const p = pts[idx];
-      const p2 = pts[Math.min(idx + 1, pts.length - 1)];
-      const dx = p2.x - p.x;
-      const dy = p2.y - p.y;
-      const len = Math.hypot(dx, dy) || 1;
-      // perpendicular
-      const ox = -dy / len * 28;
-      const oy = dx / len * 28;
-
-      const sx = p.x + ox;
-      const sy = p.y + oy;
-
-      // avoid placing on top of a node
-      const tooClose = nodes.some(n => Math.hypot(n.x - sx, n.y - sy) < 30);
-      const finalX = tooClose ? p.x - ox : sx;
-      const finalY = tooClose ? p.y - oy : sy;
-
-      const label = `${road.name.toUpperCase()} ${TYPE_FULL[road.type] || road.type}`;
-      ctx.font = 'bold 12px Overpass';
+      const idx = Math.max(1, Math.floor(pts.length * 0.38));
+      const p = pts[idx], p2 = pts[Math.min(idx + 1, pts.length - 1)];
+      const dx = p2.x - p.x, dy = p2.y - p.y, len = Math.hypot(dx, dy) || 1;
+      const ox = -dy / len * 22, oy = dx / len * 22;
+      let sx = p.x + ox, sy = p.y + oy;
+      if (nodes.some(n => Math.hypot(n.x - sx, n.y - sy) < 26)) { sx = p.x - ox; sy = p.y - oy; }
+      const label = `${road.name.toUpperCase()} ${TYPE_FULL[road.type]||road.type}`;
+      ctx.font = 'bold 11px Overpass';
       const tw = ctx.measureText(label).width;
-
-      // green sign background
-      const padX = 8, padY = 4;
-      ctx.fillStyle = '#2d6b2d';
-      ctx.strokeStyle = '#c9a800';
-      ctx.lineWidth = 2;
-      roundRect(ctx, finalX - tw/2 - padX, finalY - 9, tw + padX*2, 18, 2);
-      ctx.fill();
-      ctx.stroke();
-
-      // text
-      ctx.fillStyle = '#fff';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(label, finalX, finalY);
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'alphabetic';
-    }
-
-    function roundRect(ctx, x, y, w, h, r) {
+      ctx.fillStyle = '#2d6b2d'; ctx.strokeStyle = '#c9a800'; ctx.lineWidth = 1.5;
+      const hw = tw/2 + 6, hh = 7;
       ctx.beginPath();
-      ctx.moveTo(x + r, y);
-      ctx.lineTo(x + w - r, y);
-      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-      ctx.lineTo(x + w, y + h - r);
-      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-      ctx.lineTo(x + r, y + h);
-      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-      ctx.lineTo(x, y + r);
-      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.moveTo(sx - hw + 2, sy - hh);
+      ctx.lineTo(sx + hw - 2, sy - hh);
+      ctx.quadraticCurveTo(sx + hw, sy - hh, sx + hw, sy - hh + 2);
+      ctx.lineTo(sx + hw, sy + hh - 2);
+      ctx.quadraticCurveTo(sx + hw, sy + hh, sx + hw - 2, sy + hh);
+      ctx.lineTo(sx - hw + 2, sy + hh);
+      ctx.quadraticCurveTo(sx - hw, sy + hh, sx - hw, sy + hh - 2);
+      ctx.lineTo(sx - hw, sy - hh + 2);
+      ctx.quadraticCurveTo(sx - hw, sy - hh, sx - hw + 2, sy - hh);
       ctx.closePath();
+      ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(label, sx, sy);
+      ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
     }
-
     function drawNodes() {
       nodes.forEach(n => {
-        ctx.beginPath();
-        ctx.arc(n.x, n.y, 8, 0, Math.PI * 2);
-        ctx.fillStyle = '#f5d000';
-        ctx.fill();
-        ctx.strokeStyle = '#111';
-        ctx.lineWidth = 2.5;
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(n.x, n.y, 3.5, 0, Math.PI * 2);
-        ctx.fillStyle = '#111';
-        ctx.fill();
+        ctx.beginPath(); ctx.arc(n.x, n.y, 7, 0, Math.PI * 2);
+        ctx.fillStyle = '#f5d000'; ctx.fill();
+        ctx.strokeStyle = '#111'; ctx.lineWidth = 2; ctx.stroke();
+        ctx.beginPath(); ctx.arc(n.x, n.y, 3, 0, Math.PI * 2);
+        ctx.fillStyle = '#111'; ctx.fill();
       });
     }
-
-    function draw() {
-      drawGrass();
-      roads.forEach(drawRoad);
-      drawNodes();
-    }
-
-    // ---------- Interaction ----------
+    function draw() { drawGrass(); roads.forEach(drawRoad); drawNodes(); }
     function getMousePos(e) {
       const rect = canvas.getBoundingClientRect();
-      const scaleX = MAP_W / rect.width;
-      const scaleY = MAP_H / rect.height;
-      return {
-        x: (e.clientX - rect.left) * scaleX,
-        y: (e.clientY - rect.top) * scaleY
-      };
+      return { x: (e.clientX - rect.left) * (MAP_W / rect.width), y: (e.clientY - rect.top) * (MAP_H / rect.height) };
     }
-
-    function distToSegment(px, py, a, b) {
-      const dx = b.x - a.x, dy = b.y - a.y;
-      const len2 = dx*dx + dy*dy;
-      if (len2 === 0) return Math.hypot(px - a.x, py - a.y);
-      let t = ((px - a.x)*dx + (py - a.y)*dy) / len2;
-      t = Math.max(0, Math.min(1, t));
-      return Math.hypot(px - (a.x + t*dx), py - (a.y + t*dy));
+    function distToSeg(px, py, a, b) {
+      const dx = b.x - a.x, dy = b.y - a.y, len2 = dx*dx + dy*dy;
+      if (len2 === 0) return Math.hypot(px-a.x, py-a.y);
+      let t = ((px-a.x)*dx + (py-a.y)*dy) / len2; t = Math.max(0, Math.min(1, t));
+      return Math.hypot(px-(a.x+t*dx), py-(a.y+t*dy));
     }
-
-    function findNearestRoad(mx, my, threshold = 18) {
-      let best = null, bestD = threshold;
+    function findNearestRoad(mx, my, th = 16) {
+      let best = null, bestD = th;
       for (const road of roads) {
         const pts = road.points;
-        for (let i = 0; i < pts.length - 1; i++) {
-          const d = distToSegment(mx, my, pts[i], pts[i+1]);
+        for (let i = 0; i < pts.length-1; i++) {
+          const d = distToSeg(mx, my, pts[i], pts[i+1]);
           if (d < bestD) { bestD = d; best = road; }
         }
       }
       return best;
     }
-
-    function findNearestNode(mx, my, threshold = 14) {
-      let best = null, bestD = threshold;
+    function findNearestNode(mx, my, th = 13) {
+      let best = null, bestD = th;
       for (const n of nodes) {
-        const d = Math.hypot(mx - n.x, my - n.y);
+        const d = Math.hypot(mx-n.x, my-n.y);
         if (d < bestD) { bestD = d; best = n; }
       }
       return best;
     }
-
-    function roadsAtNode(nodeId) {
-      return roads.filter(r => r.nodeIds.includes(nodeId));
-    }
-
-    canvas.addEventListener('click', (e) => {
-      const { x, y } = getMousePos(e);
+    function roadsAtNode(id) { return roads.filter(r => r.nodeIds.includes(id)); }
+    canvas.addEventListener('click', e => {
+      const {x, y} = getMousePos(e);
       const node = findNearestNode(x, y);
       if (node) { openSign(node); return; }
       const road = findNearestRoad(x, y);
       if (road) openNameModal(road);
     });
-
     function openNameModal(road) {
       selectedRoadId = road.id;
       document.getElementById('streetName').value = road.name || '';
       document.getElementById('streetType').value = road.type || 'ST';
       document.getElementById('nameModal').classList.add('open');
-      setTimeout(() => document.getElementById('streetName').focus(), 40);
+      setTimeout(() => document.getElementById('streetName').focus(), 30);
     }
-
-    document.getElementById('saveName').addEventListener('click', () => {
+    document.getElementById('saveName').onclick = () => {
       const name = document.getElementById('streetName').value.trim();
       const type = document.getElementById('streetType').value;
       if (!name) return;
@@ -836,59 +586,43 @@
       document.getElementById('nameModal').classList.remove('open');
       draw();
       document.getElementById('status').textContent = `"${name} ${TYPE_FULL[type]}" named`;
-    });
-    document.getElementById('cancelName').addEventListener('click', () => {
-      document.getElementById('nameModal').classList.remove('open');
-    });
-
+    };
+    document.getElementById('cancelName').onclick = () => document.getElementById('nameModal').classList.remove('open');
     function openSign(node) {
       currentSignRoads = roadsAtNode(node.id);
-      if (currentSignRoads.length === 0) return;
+      if (!currentSignRoads.length) return;
       signOrder = [0, 1];
       updateSignBlades();
       document.getElementById('signOverlay').classList.add('open');
     }
-
     function updateSignBlades() {
       const top = currentSignRoads[signOrder[0]] || null;
       const bot = currentSignRoads[signOrder[1]] || currentSignRoads[0] || null;
-      const fmt = r => {
-        if (!r) return '—';
-        if (!r.name) return '(unnamed)';
-        return `${r.name.toUpperCase()} ${TYPE_FULL[r.type] || r.type}`;
-      };
+      const fmt = r => !r ? '—' : (!r.name ? '(unnamed)' : `${r.name.toUpperCase()} ${TYPE_FULL[r.type]||r.type}`);
       document.getElementById('signTop').textContent = fmt(top);
       document.getElementById('signBottom').textContent = fmt(bot);
     }
-
-    document.getElementById('btnReverse').addEventListener('click', () => {
+    document.getElementById('btnReverse').onclick = () => {
       if (currentSignRoads.length < 2) return;
       signOrder = [signOrder[1], signOrder[0]];
       updateSignBlades();
-    });
-    document.getElementById('btnCloseSign').addEventListener('click', () => {
-      document.getElementById('signOverlay').classList.remove('open');
-    });
-
-    // Level tabs
+    };
+    document.getElementById('btnCloseSign').onclick = () => document.getElementById('signOverlay').classList.remove('open');
     document.querySelectorAll('.level-tabs button').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.onclick = () => {
         document.querySelectorAll('.level-tabs button').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        loadLevel(parseInt(btn.dataset.level, 10));
-      });
+        loadLevel(+btn.dataset.level);
+      };
     });
-
     function loadLevel(lvl) {
       if (lvl === 1) generateLevel1();
       else if (lvl === 2) generateLevel2();
       else generateLevel3();
       const names = {1:'Cul-De-Sac', 2:'The Burbs', 3:'Lots & Blocks'};
-      document.getElementById('status').textContent =
-        `Level ${lvl}: ${names[lvl]} · ${nodes.length} intersections · v${VERSION}`;
+      document.getElementById('status').textContent = `${names[lvl]} · ${nodes.length} intersections · v${VERSION}`;
       draw();
     }
-
     window.addEventListener('resize', resize);
     resize();
     loadLevel(1);
