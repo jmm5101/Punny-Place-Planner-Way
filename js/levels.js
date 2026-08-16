@@ -24,7 +24,7 @@ function makeEdge(id, a, b) {
   return { id, a, b, name: null, type: null };
 }
 
-// ---------- LEVEL 1: Cul-de-Sac (~12 nodes) ----------
+// ---------- LEVEL 1: Cul-de-Sac (14 nodes) ----------
 // Main highway across the bottom.
 // Three roads branch north. Each has a mid-way T intersection
 // that leads to a short side street ending in a cul-de-sac.
@@ -74,9 +74,9 @@ const level1 = {
   ]
 };
 
-// ---------- LEVEL 2: Suburban (30 nodes) ----------
+// ---------- LEVEL 2: Suburban (exactly 30 nodes) ----------
 // Irregular layout: longer streets that each pass through ~3 intersections,
-// some loops, a few cul-de-sacs, and a couple of short connectors.
+// some loops, a few cul-de-sacs, and short connectors.
 
 const level2 = {
   id: 2,
@@ -86,7 +86,6 @@ const level2 = {
 };
 
 (function buildLevel2() {
-  // Generate a loose suburban pattern with exactly 30 nodes
   const nodes = [];
   const edges = [];
   let nid = 0;
@@ -96,19 +95,20 @@ const level2 = {
     return id;
   };
 
-  // Row-ish layout with variation
-  // Bottom arterial
+  // Bottom arterial (7)
   const r0 = [add(60,560), add(180,560), add(300,560), add(420,560), add(540,560), add(660,560), add(780,560)];
-  // Mid lower
+  // Mid lower (6)
   const r1 = [add(100,440), add(220,450), add(340,430), add(460,450), add(580,440), add(700,450)];
-  // Mid
+  // Mid (7)
   const r2 = [add(80,320), add(200,310), add(320,330), add(440,310), add(560,320), add(680,310), add(800,330)];
-  // Upper
+  // Upper (5)
   const r3 = [add(140,200), add(280,190), add(420,210), add(560,200), add(700,190)];
-  // Top stubs / cul-de-sacs
+  // Top stubs / cul-de-sacs (3)
   const r4 = [add(220,90), add(420,80), add(620,95)];
+  // Two extra nodes to reach exactly 30
+  const extra1 = add(340,100);  // side spur from r3[1]
+  const extra2 = add(500,100);  // side spur from r3[2]
 
-  // Connect arterials & laterals to create ~3 intersections per street feel
   const link = (a, b) => edges.push(makeEdge("e" + edges.length, a, b));
 
   // Horizontal runs
@@ -117,7 +117,7 @@ const level2 = {
   for (let i = 0; i < r2.length - 1; i++) link(r2[i], r2[i+1]);
   for (let i = 0; i < r3.length - 1; i++) link(r3[i], r3[i+1]);
 
-  // Vertical / diagonal connectors (create the "three intersections" feel)
+  // Vertical connectors
   link(r0[1], r1[0]); link(r0[2], r1[1]); link(r0[3], r1[2]);
   link(r0[4], r1[3]); link(r0[5], r1[4]); link(r0[6], r1[5]);
 
@@ -132,7 +132,11 @@ const level2 = {
   link(r3[2], r4[1]);
   link(r3[4], r4[2]);
 
-  // A couple extra cross links for interest
+  // Extra spurs
+  link(r3[1], extra1);
+  link(r3[2], extra2);
+
+  // A couple extra cross links
   link(r2[0], r1[0]);
   link(r3[1], r2[2]);
 
