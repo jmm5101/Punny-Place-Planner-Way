@@ -59,7 +59,7 @@
         <div class="logo-sign bottom">Planner Way</div>
       </div>
       <div class="logo-pole"></div>
-      <div class="version">v5.5</div>
+      <div class="version">v5.6</div>
     </div>
     <div class="level-tabs">
       <button data-level="1" class="active">1. Cul-De-Sac</button>
@@ -107,7 +107,7 @@
     </div>
   </div>
   <script>
-const VERSION = '5.5';
+const VERSION = '5.6';
 const canvas = document.getElementById('map');
 const ctx = canvas.getContext('2d');
 const container = document.getElementById('game-container');
@@ -266,13 +266,19 @@ function drawRoadSign(road) {
   if (nodes.some(n => Math.hypot(n.x - sx, n.y - sy) < 24)) {
     sx = p.x - ox; sy = p.y - oy;
   }
-  // Angle of the street segment; keep text upright (no upside-down)
+
+  // Street direction angle
   let angle = Math.atan2(dy, dx);
+  // Fold into (-90°, +90°] so text is not upside-down
   if (angle > Math.PI / 2) angle -= Math.PI;
   if (angle < -Math.PI / 2) angle += Math.PI;
+  // Counter-clockwise only, up to 90°.
+  // Canvas: positive rotate = clockwise, negative = counter-clockwise.
+  // Force any clockwise tilt to the matching CCW amount.
+  if (angle > 0) angle = -angle;
+  // angle is now in [-π/2, 0] → CCW 0° to 90°
 
   const label = `${road.name.toUpperCase()} ${TYPE_FULL[road.type] || road.type}`;
-  // 1.25× larger than previous 11px → ~14px
   ctx.font = 'bold 14px Overpass';
   const tw = ctx.measureText(label).width;
   const hw = tw / 2 + 7, hh = 9;
@@ -321,7 +327,6 @@ function draw() {
   drawGrass();
   roads.forEach(drawRoad);
   drawNodes();
-  // Signs on top of everything
   roads.forEach(r => { if (r.name) drawRoadSign(r); });
 }
 function getMousePos(e) {
@@ -411,7 +416,7 @@ document.querySelectorAll('.level-tabs button').forEach(btn => {
   };
 });
 function loadLevel(lvl) {
-  if (lvl === 2) return; // under development
+  if (lvl === 2) return;
   currentLevel = lvl;
   if (lvl === 1) generateLevel1();
   else if (lvl === 3) generateLevel3();
