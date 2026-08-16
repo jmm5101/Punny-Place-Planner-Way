@@ -5,7 +5,7 @@ A mid-90s style browser game where you name streets so their intersections creat
 **Live:** https://jmm5101.github.io/Punny-Place-Planner-Way/
 
 ## Version
-**v1.2**
+**v5.1**
 
 ## Features
 
@@ -20,8 +20,15 @@ A mid-90s style browser game where you name streets so their intersections creat
 - Click a street → name it + choose type (Alley/ALY … Way/WAY)
 - Click a yellow intersection node → photo-style dual street-sign popup with reverse order
 - Three levels:
-  - **Level 1 – Cul-De-Sac**: One main road. Sequential T-branching so the 10th street requires driving the main + all 9 previous streets.
-  - **Level 2 – The Burbs**: Well-connected network with ~50 % of streets ending in cul-de-sacs.
+  - **Level 1 – Cul-De-Sac**: Hierarchical sequential T-branching. Main Street has a single T-intersection with 1st Street (the only access point in/out of the entire neighborhood). Then:
+    - 1st Street: T (Main) — T (2nd) — Cul-de-Sac
+    - 2nd Street: T (1st) — T (3rd) — Cul-de-Sac
+    - … continuing …
+    - 8th Street: T (7th) — T (9th) — Cul-de-Sac
+    - 9th Street: T (8th) — Cul-de-Sac
+    
+    All traffic from any street or cul-de-sac must ascend the hierarchy (9→8→…→1) to reach Main Street.
+  - **Level 2 – Da Burbs**: Well-connected network with ~50 % of streets ending in cul-de-sacs.
   - **Level 3 – Lots & Blocks**: Clean rectangular grid (streets extend off the map). No cul-de-sacs.
 
 ## Deploy
