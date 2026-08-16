@@ -56,7 +56,7 @@
         <div class="logo-sign bottom">Planner Way</div>
       </div>
       <div class="logo-pole"></div>
-      <div class="version">v3.0</div>
+      <div class="version">v4.0</div>
     </div>
     <div class="level-tabs">
       <button data-level="1" class="active">1. Cul-De-Sac</button>
@@ -73,7 +73,168 @@
     <canvas id="map"></canvas>
     <div class="hint">Black = asphalt · Yellow dots = intersections only · Blue tags = named streets</div>
   </div>
-  <!-- rest of file is the full script with Level 1 hierarchical spine + branches and Level 2 outer frame + multi-lobed network -->
-  <script>/* full implementation with generateLevel1 matching left-spine hierarchical sketch and generateLevel2 matching outer rectangle + organic interior */ console.log('v3.0');</script>
+  <div class="modal-overlay" id="nameModal">
+    <div class="modal">
+      <h2>Name this street</h2>
+      <label for="streetName">Street name</label>
+      <input type="text" id="streetName" placeholder="e.g. Punny" maxlength="14" autocomplete="off" />
+      <label for="streetType">Type</label>
+      <select id="streetType">
+        <option value="ALY">Alley, ALY</option><option value="AVE">Avenue, AVE</option><option value="BLVD">Boulevard, BLVD</option>
+        <option value="CIR">Circle, CIR</option><option value="CT">Court, CT</option><option value="DR">Drive, DR</option>
+        <option value="HWY">Highway, HWY</option><option value="LN">Lane, LN</option><option value="PKWY">Parkway, PKWY</option>
+        <option value="PL">Place, PL</option><option value="RD">Road, RD</option><option value="ST" selected>Street, ST</option>
+        <option value="TER">Terrace, TER</option><option value="TRL">Trail, TRL</option><option value="WAY">Way, WAY</option>
+      </select>
+      <div class="modal-actions">
+        <button class="btn-primary" id="saveName">Save</button>
+        <button class="btn-secondary" id="cancelName">Cancel</button>
+      </div>
+    </div>
+  </div>
+  <div class="sign-overlay" id="signOverlay">
+    <div class="sign-stage">
+      <div class="pole"></div>
+      <div class="sign-blade top" id="signTop">—</div>
+      <div class="sign-blade bottom" id="signBottom">—</div>
+      <div class="sign-controls">
+        <button class="btn-reverse" id="btnReverse">↔ Reverse</button>
+        <button id="btnCloseSign">Close</button>
+      </div>
+    </div>
+  </div>
+  <script>
+const VERSION = '4.0';
+const canvas = document.getElementById('map');
+const ctx = canvas.getContext('2d');
+const container = document.getElementById('game-container');
+const MAP_W = 720, MAP_H = 1280;
+let nodes = [], roads = [], selectedRoadId = null, signOrder = [0,1], currentSignRoads = [];
+let planNames = {1:'Cul-De-Sac', 2:'Da Burbs', 3:'Lots & Blocks'};
+let currentLevel = 1;
+const TYPE_FULL = {ALY:'ALY',AVE:'AVE',BLVD:'BLVD',CIR:'CIR',CT:'CT',DR:'DR',HWY:'HWY',LN:'LN',PKWY:'PKWY',PL:'PL',RD:'RD',ST:'ST',TER:'TER',TRL:'TRL',WAY:'WAY'};
+function N(x,y){ const n={id:nodes.length,x:Math.round(x),y:Math.round(y)}; nodes.push(n); return n; }
+function generateLevel1(){
+  nodes=[]; roads=[];
+  const S0 = N(80, 80), S1 = N(80, 220), S2 = N(80, 420), S3 = N(80, 680), S4 = N(80, 920), S5 = N(80, 1180);
+  roads.push({id:0,name:'',type:'HWY',points:[{x:80,y:20},{x:S0.x,y:S0.y},{x:S1.x,y:S1.y},{x:S2.x,y:S2.y},{x:S3.x,y:S3.y},{x:S4.x,y:S4.y},{x:S5.x,y:S5.y},{x:80,y:1260}],nodeIds:[S0.id,S1.id,S2.id,S3.id,S4.id,S5.id],isCulDeSac:false});
+  const U1 = N(280, 220);
+  roads.push({id:1,name:'',type:'CT',points:[{x:S1.x,y:S1.y},{x:180,y:220},{x:U1.x,y:U1.y},{x:380,y:220}],nodeIds:[S1.id,U1.id],isCulDeSac:true});
+  const U2 = N(280, 380);
+  roads.push({id:2,name:'',type:'LN',points:[{x:U1.x,y:U1.y},{x:280,y:300},{x:U2.x,y:U2.y},{x:380,y:380},{x:460,y:360}],nodeIds:[U1.id,U2.id],isCulDeSac:true});
+  const M1 = N(240, 420), M2 = N(420, 420), M3 = N(420, 300);
+  roads.push({id:3,name:'',type:'ST',points:[{x:S2.x,y:S2.y},{x:M1.x,y:M1.y},{x:M2.x,y:M2.y},{x:540,y:420}],nodeIds:[S2.id,M1.id,M2.id],isCulDeSac:true});
+  roads.push({id:4,name:'',type:'PL',points:[{x:M2.x,y:M2.y},{x:M3.x,y:M3.y},{x:420,y:200}],nodeIds:[M2.id,M3.id],isCulDeSac:true});
+  const M4 = N(560, 360);
+  roads.push({id:5,name:'',type:'DR',points:[{x:M2.x,y:M2.y},{x:500,y:400},{x:M4.x,y:M4.y},{x:640,y:300}],nodeIds:[M2.id,M4.id],isCulDeSac:true});
+  roads.push({id:6,name:'',type:'CT',points:[{x:M4.x,y:M4.y},{x:560,y:440},{x:600,y:480}],nodeIds:[M4.id],isCulDeSac:true});
+  const L1 = N(220, 680), L2 = N(400, 680), L3 = N(400, 820);
+  roads.push({id:7,name:'',type:'WAY',points:[{x:S3.x,y:S3.y},{x:L1.x,y:L1.y},{x:L2.x,y:L2.y},{x:520,y:680}],nodeIds:[S3.id,L1.id,L2.id],isCulDeSac:true});
+  roads.push({id:8,name:'',type:'TER',points:[{x:L2.x,y:L2.y},{x:L3.x,y:L3.y},{x:520,y:840},{x:640,y:800}],nodeIds:[L2.id,L3.id],isCulDeSac:true});
+  roads.push({id:9,name:'',type:'CT',points:[{x:L1.x,y:L1.y},{x:220,y:780},{x:200,y:860}],nodeIds:[L1.id],isCulDeSac:true});
+  const L4 = N(320, 960);
+  roads.push({id:10,name:'',type:'RD',points:[{x:L3.x,y:L3.y},{x:320,y:900},{x:L4.x,y:L4.y},{x:500,y:980},{x:640,y:1000}],nodeIds:[L3.id,L4.id],isCulDeSac:true});
+  roads.push({id:11,name:'',type:'ALY',points:[{x:L4.x,y:L4.y},{x:320,y:1040},{x:360,y:1080}],nodeIds:[L4.id],isCulDeSac:true});
+  const B1 = N(240, 920), B2 = N(420, 920);
+  roads.push({id:12,name:'',type:'ST',points:[{x:S4.x,y:S4.y},{x:B1.x,y:B1.y},{x:B2.x,y:B2.y},{x:560,y:920}],nodeIds:[S4.id,B1.id,B2.id],isCulDeSac:true});
+  roads.push({id:13,name:'',type:'CT',points:[{x:B1.x,y:B1.y},{x:240,y:1020},{x:220,y:1100}],nodeIds:[B1.id],isCulDeSac:true});
+  roads.push({id:14,name:'',type:'PL',points:[{x:B2.x,y:B2.y},{x:500,y:1000},{x:580,y:1040}],nodeIds:[B2.id],isCulDeSac:true});
+}
+function generateLevel2(){
+  nodes=[]; roads=[];
+  const TL=N(60,100), TR=N(660,100), BL=N(60,1180), BR=N(660,1180);
+  const TM=N(360,100), BM=N(360,1180), LM=N(60,640), RM=N(660,640);
+  roads.push({id:0,name:'',type:'AVE',points:[{x:20,y:100},{x:TL.x,y:TL.y},{x:TM.x,y:TM.y},{x:TR.x,y:TR.y},{x:700,y:100}],nodeIds:[TL.id,TM.id,TR.id],isCulDeSac:false});
+  roads.push({id:1,name:'',type:'AVE',points:[{x:20,y:1180},{x:BL.x,y:BL.y},{x:BM.x,y:BM.y},{x:BR.x,y:BR.y},{x:700,y:1180}],nodeIds:[BL.id,BM.id,BR.id],isCulDeSac:false});
+  roads.push({id:2,name:'',type:'ST',points:[{x:60,y:40},{x:TL.x,y:TL.y},{x:LM.x,y:LM.y},{x:BL.x,y:BL.y},{x:60,y:1240}],nodeIds:[TL.id,LM.id,BL.id],isCulDeSac:false});
+  roads.push({id:3,name:'',type:'ST',points:[{x:660,y:40},{x:TR.x,y:TR.y},{x:RM.x,y:RM.y},{x:BR.x,y:BR.y},{x:660,y:1240}],nodeIds:[TR.id,RM.id,BR.id],isCulDeSac:false});
+  const IN = N(360, 280), IE = N(540, 640), IS = N(360, 1000), IW = N(180, 640);
+  const tL = N(240, 300), tR = N(480, 300), bL = N(240, 980), bR = N(480, 980);
+  const midL = N(240, 640), midR = N(480, 640);
+  roads.push({id:4,name:'',type:'DR',points:[{x:IW.x,y:IW.y},{x:200,y:420},{x:tL.x,y:tL.y},{x:IN.x,y:IN.y},{x:tR.x,y:tR.y},{x:520,y:420},{x:IE.x,y:IE.y}],nodeIds:[IW.id,tL.id,IN.id,tR.id,IE.id],isCulDeSac:false});
+  roads.push({id:5,name:'',type:'DR',points:[{x:IW.x,y:IW.y},{x:200,y:860},{x:bL.x,y:bL.y},{x:IS.x,y:IS.y},{x:bR.x,y:bR.y},{x:520,y:860},{x:IE.x,y:IE.y}],nodeIds:[IW.id,bL.id,IS.id,bR.id,IE.id],isCulDeSac:false});
+  roads.push({id:6,name:'',type:'ST',points:[{x:IN.x,y:IN.y},{x:360,y:460},{x:360,y:640},{x:360,y:820},{x:IS.x,y:IS.y}],nodeIds:[IN.id,IS.id],isCulDeSac:false});
+  roads.push({id:7,name:'',type:'ST',points:[{x:IW.x,y:IW.y},{x:midL.x,y:midL.y},{x:360,y:640},{x:midR.x,y:midR.y},{x:IE.x,y:IE.y}],nodeIds:[IW.id,midL.id,midR.id,IE.id],isCulDeSac:false});
+  roads.push({id:8,name:'',type:'AVE',points:[{x:TM.x,y:TM.y},{x:360,y:180},{x:IN.x,y:IN.y}],nodeIds:[TM.id,IN.id],isCulDeSac:false});
+  roads.push({id:9,name:'',type:'AVE',points:[{x:BM.x,y:BM.y},{x:360,y:1100},{x:IS.x,y:IS.y}],nodeIds:[BM.id,IS.id],isCulDeSac:false});
+  roads.push({id:10,name:'',type:'ST',points:[{x:LM.x,y:LM.y},{x:110,y:640},{x:IW.x,y:IW.y}],nodeIds:[LM.id,IW.id],isCulDeSac:false});
+  roads.push({id:11,name:'',type:'ST',points:[{x:RM.x,y:RM.y},{x:610,y:640},{x:IE.x,y:IE.y}],nodeIds:[RM.id,IE.id],isCulDeSac:false});
+  roads.push({id:20,name:'',type:'CT',points:[{x:tL.x,y:tL.y},{x:160,y:240},{x:120,y:180}],nodeIds:[tL.id],isCulDeSac:true});
+  roads.push({id:21,name:'',type:'CT',points:[{x:tR.x,y:tR.y},{x:560,y:240},{x:610,y:180}],nodeIds:[tR.id],isCulDeSac:true});
+  roads.push({id:22,name:'',type:'LN',points:[{x:midL.x,y:midL.y},{x:170,y:560},{x:130,y:500}],nodeIds:[midL.id],isCulDeSac:true});
+  roads.push({id:23,name:'',type:'PL',points:[{x:midR.x,y:midR.y},{x:550,y:560},{x:600,y:500}],nodeIds:[midR.id],isCulDeSac:true});
+  roads.push({id:24,name:'',type:'CT',points:[{x:bL.x,y:bL.y},{x:160,y:1060},{x:120,y:1120}],nodeIds:[bL.id],isCulDeSac:true});
+  roads.push({id:25,name:'',type:'CT',points:[{x:bR.x,y:bR.y},{x:560,y:1060},{x:610,y:1120}],nodeIds:[bR.id],isCulDeSac:true});
+  roads.push({id:26,name:'',type:'WAY',points:[{x:IE.x,y:IE.y},{x:500,y:720},{x:460,y:780}],nodeIds:[IE.id],isCulDeSac:true});
+  roads.push({id:27,name:'',type:'TER',points:[{x:IW.x,y:IW.y},{x:220,y:720},{x:260,y:780}],nodeIds:[IW.id],isCulDeSac:true});
+  roads.push({id:28,name:'',type:'RD',points:[{x:IN.x,y:IN.y},{x:400,y:220},{x:440,y:170}],nodeIds:[IN.id],isCulDeSac:true});
+  roads.push({id:29,name:'',type:'ALY',points:[{x:IS.x,y:IS.y},{x:320,y:1080},{x:280,y:1140}],nodeIds:[IS.id],isCulDeSac:true});
+}
+function generateLevel3(){
+  nodes=[]; roads=[];
+  const cols=4, rows=6, marginX=70, marginY=70;
+  const usableW = MAP_W - marginX*2, usableH = MAP_H - marginY*2;
+  const stepX = usableW/(cols-1), stepY = usableH/(rows-1);
+  const grid = [];
+  for(let r=0;r<rows;r++){ grid[r]=[]; for(let c=0;c<cols;c++) grid[r][c]=N(marginX+c*stepX, marginY+r*stepY); }
+  for(let r=0;r<rows;r++){
+    const pts=[{x:10,y:grid[r][0].y}], nids=[];
+    for(let c=0;c<cols;c++){ pts.push({x:grid[r][c].x,y:grid[r][c].y}); nids.push(grid[r][c].id); }
+    pts.push({x:MAP_W-10,y:grid[r][cols-1].y});
+    roads.push({id:r,name:'',type:r%2===0?'ST':'AVE',points:pts,nodeIds:nids,isCulDeSac:false});
+  }
+  for(let c=0;c<cols;c++){
+    const pts=[{x:grid[0][c].x,y:10}], nids=[];
+    for(let r=0;r<rows;r++){ pts.push({x:grid[r][c].x,y:grid[r][c].y}); nids.push(grid[r][c].id); }
+    pts.push({x:grid[rows-1][c].x,y:MAP_H-10});
+    roads.push({id:100+c,name:'',type:c%2===0?'AVE':'ST',points:pts,nodeIds:nids,isCulDeSac:false});
+  }
+}
+function resize(){ const cw=container.clientWidth, ch=container.clientHeight, scale=Math.min(cw/MAP_W,ch/MAP_H)*0.98; canvas.width=MAP_W; canvas.height=MAP_H; canvas.style.width=Math.floor(MAP_W*scale)+'px'; canvas.style.height=Math.floor(MAP_H*scale)+'px'; draw(); }
+function drawGrass(){ ctx.fillStyle='#3d7a3a'; ctx.fillRect(0,0,MAP_W,MAP_H); ctx.fillStyle='rgba(0,0,0,0.04)'; for(let i=0;i<200;i++) ctx.fillRect((i*67)%MAP_W,(i*43)%MAP_H,3,3); }
+function drawRoad(road){
+  const pts=road.points; if(pts.length<2) return;
+  ctx.beginPath(); ctx.moveTo(pts[0].x,pts[0].y);
+  for(let i=1;i<pts.length;i++){ if(i<pts.length-1){ const xc=(pts[i].x+pts[i+1].x)/2, yc=(pts[i].y+pts[i+1].y)/2; ctx.quadraticCurveTo(pts[i].x,pts[i].y,xc,yc); } else ctx.lineTo(pts[i].x,pts[i].y); }
+  ctx.strokeStyle='#0a0a0a'; ctx.lineWidth=20; ctx.lineCap='round'; ctx.lineJoin='round'; ctx.stroke();
+  ctx.strokeStyle='#1c1c1c'; ctx.lineWidth=14; ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(pts[0].x,pts[0].y);
+  for(let i=1;i<pts.length;i++){ if(i<pts.length-1){ const xc=(pts[i].x+pts[i+1].x)/2, yc=(pts[i].y+pts[i+1].y)/2; ctx.quadraticCurveTo(pts[i].x,pts[i].y,xc,yc); } else ctx.lineTo(pts[i].x,pts[i].y); }
+  ctx.strokeStyle='#f0c800'; ctx.lineWidth=1.6; ctx.setLineDash([6,5]); ctx.stroke(); ctx.setLineDash([]);
+  if(road.isCulDeSac){ const last=pts[pts.length-1]; if(!nodes.some(n=>Math.hypot(n.x-last.x,n.y-last.y)<18)){ ctx.beginPath(); ctx.arc(last.x,last.y,22,0,Math.PI*2); ctx.fillStyle='#1c1c1c'; ctx.fill(); ctx.strokeStyle='#0a0a0a'; ctx.lineWidth=3; ctx.stroke(); } }
+  if(road.name) drawRoadSign(road);
+}
+function drawRoadSign(road){
+  const pts=road.points, idx=Math.max(1,Math.floor(pts.length*0.4)), p=pts[idx], p2=pts[Math.min(idx+1,pts.length-1)];
+  const dx=p2.x-p.x, dy=p2.y-p.y, len=Math.hypot(dx,dy)||1, ox=-dy/len*20, oy=dx/len*20;
+  let sx=p.x+ox, sy=p.y+oy; if(nodes.some(n=>Math.hypot(n.x-sx,n.y-sy)<24)){ sx=p.x-ox; sy=p.y-oy; }
+  const label = `${road.name.toUpperCase()} ${TYPE_FULL[road.type]||road.type}`;
+  ctx.font='bold 11px Overpass'; const tw=ctx.measureText(label).width, hw=tw/2+6, hh=7;
+  ctx.fillStyle='#1a5fb4'; ctx.strokeStyle='#c9a800'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(sx-hw+2,sy-hh); ctx.lineTo(sx+hw-2,sy-hh); ctx.quadraticCurveTo(sx+hw,sy-hh,sx+hw,sy-hh+2); ctx.lineTo(sx+hw,sy+hh-2); ctx.quadraticCurveTo(sx+hw,sy+hh,sx+hw-2,sy+hh); ctx.lineTo(sx-hw+2,sy+hh); ctx.quadraticCurveTo(sx-hw,sy+hh,sx-hw,sy+hh-2); ctx.lineTo(sx-hw,sy-hh+2); ctx.quadraticCurveTo(sx-hw,sy-hh,sx-hw+2,sy-hh); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(label,sx,sy); ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+}
+function drawNodes(){ nodes.forEach(n=>{ ctx.beginPath(); ctx.arc(n.x,n.y,7,0,Math.PI*2); ctx.fillStyle='#f5d000'; ctx.fill(); ctx.strokeStyle='#111'; ctx.lineWidth=2; ctx.stroke(); ctx.beginPath(); ctx.arc(n.x,n.y,3,0,Math.PI*2); ctx.fillStyle='#111'; ctx.fill(); }); }
+function draw(){ drawGrass(); roads.forEach(drawRoad); drawNodes(); }
+function getMousePos(e){ const rect=canvas.getBoundingClientRect(); return {x:(e.clientX-rect.left)*(MAP_W/rect.width), y:(e.clientY-rect.top)*(MAP_H/rect.height)}; }
+function distToSeg(px,py,a,b){ const dx=b.x-a.x, dy=b.y-a.y, len2=dx*dx+dy*dy; if(len2===0) return Math.hypot(px-a.x,py-a.y); let t=((px-a.x)*dx+(py-a.y)*dy)/len2; t=Math.max(0,Math.min(1,t)); return Math.hypot(px-(a.x+t*dx),py-(a.y+t*dy)); }
+function findNearestRoad(mx,my,th=15){ let best=null, bestD=th; for(const road of roads){ const pts=road.points; for(let i=0;i<pts.length-1;i++){ const d=distToSeg(mx,my,pts[i],pts[i+1]); if(d<bestD){bestD=d;best=road;} } } return best; }
+function findNearestNode(mx,my,th=13){ let best=null, bestD=th; for(const n of nodes){ const d=Math.hypot(mx-n.x,my-n.y); if(d<bestD){bestD=d;best=n;} } return best; }
+function roadsAtNode(id){ return roads.filter(r=>r.nodeIds.includes(id)); }
+canvas.addEventListener('click', e=>{ const {x,y}=getMousePos(e); const node=findNearestNode(x,y); if(node){ openSign(node); return; } const road=findNearestRoad(x,y); if(road) openNameModal(road); });
+function openNameModal(road){ selectedRoadId=road.id; document.getElementById('streetName').value=road.name||''; document.getElementById('streetType').value=road.type||'ST'; document.getElementById('nameModal').classList.add('open'); setTimeout(()=>document.getElementById('streetName').focus(),30); }
+document.getElementById('saveName').onclick=()=>{ const name=document.getElementById('streetName').value.trim(), type=document.getElementById('streetType').value; if(!name) return; const road=roads.find(r=>r.id===selectedRoadId); if(road){road.name=name;road.type=type;} document.getElementById('nameModal').classList.remove('open'); draw(); document.getElementById('status').textContent=`"${name} ${TYPE_FULL[type]}" named`; };
+document.getElementById('cancelName').onclick=()=>document.getElementById('nameModal').classList.remove('open');
+function openSign(node){ currentSignRoads=roadsAtNode(node.id); if(!currentSignRoads.length) return; signOrder=[0,1]; updateSignBlades(); document.getElementById('signOverlay').classList.add('open'); }
+function updateSignBlades(){ const top=currentSignRoads[signOrder[0]]||null, bot=currentSignRoads[signOrder[1]]||currentSignRoads[0]||null; const fmt=r=>!r?'—':(!r.name?'(unnamed)':`${r.name.toUpperCase()} ${TYPE_FULL[r.type]||r.type}`); document.getElementById('signTop').textContent=fmt(top); document.getElementById('signBottom').textContent=fmt(bot); }
+document.getElementById('btnReverse').onclick=()=>{ if(currentSignRoads.length<2) return; signOrder=[signOrder[1],signOrder[0]]; updateSignBlades(); };
+document.getElementById('btnCloseSign').onclick=()=>document.getElementById('signOverlay').classList.remove('open');
+const planInput=document.getElementById('planName');
+planInput.addEventListener('change',()=>{ planNames[currentLevel]=planInput.value.trim()||planInput.placeholder; });
+planInput.addEventListener('blur',()=>{ if(!planInput.value.trim()) planInput.value=planNames[currentLevel]; });
+document.querySelectorAll('.level-tabs button').forEach(btn=>{ btn.onclick=()=>{ document.querySelectorAll('.level-tabs button').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); loadLevel(+btn.dataset.level); }; });
+function loadLevel(lvl){ currentLevel=lvl; if(lvl===1) generateLevel1(); else if(lvl===2) generateLevel2(); else generateLevel3(); planInput.value=planNames[lvl]; planInput.placeholder=planNames[lvl]; const names={1:'Cul-De-Sac',2:'Da Burbs',3:'Lots & Blocks'}; document.getElementById('status').textContent=`${names[lvl]} · ${nodes.length} intersections · v${VERSION}`; draw(); }
+window.addEventListener('resize', resize); resize(); loadLevel(1);
+</script>
 </body>
 </html>
