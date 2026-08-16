@@ -1,40 +1,30 @@
 # Punny Place Planner Way
 
-A mid-90s pixel-style browser game where you name streets so their intersections create silly / punny jokes.
+A mid-90s style browser game where you name streets so their intersections create silly / punny jokes.
 
-**Live (after enabling Pages):** https://jmm5101.github.io/Punny-Place-Planner-Way/
+**Live:** https://jmm5101.github.io/Punny-Place-Planner-Way/
 
-## Features (v1.1)
+## Version
+**v1.2**
 
-- **Green grass background** + **black asphalt streets** with **double yellow center lines**
-- Streets can **curve** (except pure grid)
-- **Continuous streets** share one name – name once, it appears along the whole road
-- Street names display on the map after naming
-- Click any street → name it + choose type from the full list (Alley/ALY … Way/WAY)
-- Click an **intersection node** → photo-style dual street-sign popup (green blades on gray pole against blue sky)
-- **↔ Reverse** button to swap which name is on top
-- **Cul-de-sacs** are bulbous, have **no nodes**, and never show street signs
+## Features
+
+- Game title displayed as dual green street signs: **[Punny Place]** / **[Planner Way]**
+- Version number shown in the header
+- 16:9 map aspect ratio that scales cleanly to any screen
+- Green grass + black asphalt roads with double yellow center lines
+- Streets curve (except pure grid)
+- Continuous streets share one name; the name appears as a small green street sign beside the roadway (never on a node)
+- Nodes appear **only** at true intersections
+- Cul-de-sacs are solid asphalt bulbs — **no islands**
+- Click a street → name it + choose type (Alley/ALY … Way/WAY)
+- Click a yellow intersection node → photo-style dual street-sign popup with reverse order
 - Three levels:
-  - **Level 1 – Federated Tree**: hierarchical branching, each segment depends on the previous, ends in cul-de-sacs
-  - **Level 2 – Suburban**: ~30 nodes, many curved streets and bulbous cul-de-sacs
-  - **Level 3 – Urban Grid**: clean 10×10 grid (100 nodes), straight streets
+  - **Level 1 – Cul-De-Sac**: One main road. Sequential T-branching so the 10th street requires driving the main + all 9 previous streets.
+  - **Level 2 – The Burbs**: Well-connected network with ~50 % of streets ending in cul-de-sacs.
+  - **Level 3 – Lots & Blocks**: Clean rectangular grid (streets extend off the map). No cul-de-sacs.
 
-## How to run / deploy
+## Deploy
 
-1. Open `index.html` in any modern browser, **or**
-2. Push to GitHub and enable **Pages**:
-   - Repo → **Settings** → **Pages**
-   - Source: **Deploy from a branch**
-   - Branch: **main**
-   - Folder: **/ (root)**
-   - Save → wait ~1 minute → site is live
-
-## Font
-
-Uses **Overpass** (Google Fonts).
-
-## Controls
-
-- Click black road → name the continuous street
-- Click yellow intersection circle → view / reverse the street-sign graphic
-- Switch levels with the top tabs
+Pages is set to **Deploy from a branch → main / (root)**.  
+All future updates are pushed automatically; no manual GitHub steps required after the initial setup.
