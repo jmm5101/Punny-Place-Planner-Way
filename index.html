@@ -1,171 +1,973 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
-<title>Punny Place Planner Way</title>
-<link href="https://fonts.googleapis.com/css2?family=Overpass:wght@400;600;700;800&display=swap" rel="stylesheet">
-<style>
-:root{--grass:#3d7a3a;--asphalt:#1c1c1c;--sign-blue:#1a5fb4;--ui-bg:#121212;--accent:#4caf50}
-*{box-sizing:border-box;margin:0;padding:0}html,body{height:100%;font-family:Overpass,system-ui,sans-serif;background:#0a0a0a;color:#eee;overflow:hidden}body{display:flex;flex-direction:column}
-header{background:var(--ui-bg);border-bottom:2px solid #333;padding:8px 10px 6px;display:flex;flex-direction:column;align-items:center;gap:6px;flex-shrink:0;z-index:40}
-.logo-wrap{display:flex;flex-direction:column;align-items:center;position:relative;padding-bottom:4px}
-.logo-pole{width:10px;height:18px;background:linear-gradient(to right,#6a6a6a,#9a9a9a 45%,#7a7a7a);border-radius:2px 2px 0 0;margin-bottom:-2px;z-index:1}
-.logo-signs{display:flex;flex-direction:column;gap:2px;z-index:2}
-.logo-sign{background:linear-gradient(to bottom,#1a5fb4,#0d3d7a);color:#fff;font-weight:800;font-size:0.7rem;letter-spacing:0.8px;text-transform:uppercase;padding:3px 10px;border:1.5px solid #c9a800;border-radius:2px;white-space:nowrap;box-shadow:0 1px 0 #062a5a;line-height:1.15}
-.logo-sign.top{transform:rotate(-1.5deg)}.logo-sign.bottom{transform:rotate(1deg);margin-left:5px}
-.version{font-size:0.55rem;color:#666;margin-top:2px}
-.level-tabs{display:flex;gap:4px;justify-content:center;flex-wrap:wrap}
-.level-tabs button{font-family:inherit;font-weight:600;font-size:0.68rem;padding:4px 9px;border:1.5px solid #444;background:#1a1a1a;color:#bbb;cursor:pointer;border-radius:3px;white-space:nowrap}
-.level-tabs button.active{background:var(--accent);border-color:#2e7d32;color:#000}
-.plan-row{display:flex;align-items:center;gap:6px;width:100%;max-width:320px;justify-content:center}
-.plan-row label{font-size:0.65rem;color:#888;white-space:nowrap}
-.plan-row input{flex:1;font-family:inherit;font-size:0.75rem;padding:3px 6px;border:1.5px solid #444;background:#1a1a1a;color:#eee;border-radius:3px;min-width:0}
-.status{font-size:0.6rem;color:#777;text-align:center}
-#game-container{flex:1;position:relative;overflow:hidden;background:#1a3a1a;display:flex;align-items:center;justify-content:center}
-canvas{display:block;image-rendering:pixelated;cursor:crosshair;background:var(--grass)}
-.modal-overlay,.sign-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.78);display:none;align-items:center;justify-content:center;z-index:50;padding:12px}
-.modal-overlay.open,.sign-overlay.open{display:flex}
-.modal{background:#222;border:2px solid #444;border-radius:8px;padding:14px 16px;width:min(340px,100%)}
-.modal h2{font-size:0.95rem;margin-bottom:10px}
-.modal label{display:block;font-size:0.7rem;color:#999;margin-bottom:2px}
-.modal input,.modal select{width:100%;font-family:inherit;font-size:0.9rem;padding:7px 8px;margin-bottom:8px;border:2px solid #555;background:#111;color:#fff;border-radius:4px}
-.modal-actions{display:flex;gap:8px;margin-top:4px}
-.modal-actions button{font-family:inherit;font-weight:700;font-size:0.8rem;padding:7px 12px;border:none;border-radius:4px;cursor:pointer}
-.btn-primary{background:var(--accent);color:#000}.btn-secondary{background:#444;color:#eee}
-.sign-stage{position:relative;width:min(280px,92vw);height:340px;background:linear-gradient(to bottom,#6bb3e8 0%,#4a9ad4 45%,#3a7bb0 100%);border:3px solid #222;border-radius:6px;overflow:hidden;display:flex;flex-direction:column;align-items:center;padding-top:28px}
-.pole{position:absolute;bottom:0;width:22px;height:78%;background:linear-gradient(to right,#6e6e6e,#9a9a9a 40%,#7a7a7a 60%,#5a5a5a);border-radius:3px 3px 0 0;z-index:1}
-.sign-blade{position:relative;z-index:2;background:linear-gradient(to bottom,#1a5fb4,#0d3d7a);color:white;font-weight:800;font-size:1.05rem;letter-spacing:1px;text-transform:uppercase;padding:7px 14px;min-width:150px;text-align:center;border:2.5px solid #c9a800;border-radius:2px;box-shadow:0 2px 0 #062a5a,0 4px 10px rgba(0,0,0,0.35);margin-bottom:10px;white-space:nowrap;max-width:230px;overflow:hidden;text-overflow:ellipsis}
-.sign-blade.top{transform:rotate(-1.8deg);margin-left:-12px}.sign-blade.bottom{transform:rotate(1.2deg);margin-left:8px}
-.sign-controls{position:absolute;bottom:12px;left:0;right:0;display:flex;justify-content:center;gap:8px;z-index:5}
-.sign-controls button{font-family:inherit;font-weight:700;font-size:0.8rem;padding:6px 12px;border:2px solid #333;border-radius:4px;cursor:pointer;background:#222;color:#fff}
-.sign-controls .btn-reverse{background:#1565c0;border-color:#0d47a1}
-.hint{position:absolute;bottom:6px;left:6px;right:6px;background:rgba(0,0,0,0.7);color:#aaa;font-size:0.6rem;padding:4px 8px;border-radius:3px;text-align:center;pointer-events:none;z-index:10}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Punny Place Planner Way</title>
+  <link href="https://fonts.googleapis.com/css2?family=Overpass:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --grass: #3d7a3a;
+      --asphalt: #1c1c1c;
+      --sign-blue: #1a5fb4;
+      --ui-bg: #121212;
+      --accent: #4caf50;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; font-family: 'Overpass', system-ui, sans-serif; background: #0a0a0a; color: #eee; overflow: hidden; }
+    body { display: flex; flex-direction: column; }
+
+    header {
+      background: var(--ui-bg);
+      border-bottom: 2px solid #333;
+      padding: 8px 10px 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+      z-index: 40;
+    }
+
+    /* Logo: gray post ABOVE the signs */
+    .logo-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+    .logo-pole {
+      width: 10px;
+      height: 16px;
+      background: linear-gradient(to right, #6a6a6a, #9a9a9a 45%, #7a7a7a);
+      border-radius: 2px 2px 0 0;
+      margin-bottom: 1px;
+      z-index: 1;
+    }
+    .logo-signs {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      z-index: 2;
+    }
+    .logo-sign {
+      background: linear-gradient(to bottom, #1a5fb4, #0d3d7a);
+      color: #fff;
+      font-weight: 800;
+      font-size: 0.7rem;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border: 1.5px solid #c9a800;
+      border-radius: 2px;
+      white-space: nowrap;
+      box-shadow: 0 1px 0 #062a5a;
+      line-height: 1.15;
+    }
+    .logo-sign.top { transform: rotate(-1.5deg); }
+    .logo-sign.bottom { transform: rotate(1deg); margin-left: 5px; }
+    .version { font-size: 0.55rem; color: #666; margin-top: 2px; }
+
+    .level-tabs {
+      display: flex;
+      gap: 4px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .level-tabs button {
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 0.68rem;
+      padding: 4px 9px;
+      border: 1.5px solid #444;
+      background: #1a1a1a;
+      color: #bbb;
+      cursor: pointer;
+      border-radius: 3px;
+      white-space: nowrap;
+    }
+    .level-tabs button.active {
+      background: var(--accent);
+      border-color: #2e7d32;
+      color: #000;
+    }
+
+    .plan-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      width: 100%;
+      max-width: 320px;
+      justify-content: center;
+    }
+    .plan-row label { font-size: 0.65rem; color: #888; white-space: nowrap; }
+    .plan-row input {
+      flex: 1;
+      font-family: inherit;
+      font-size: 0.75rem;
+      padding: 3px 6px;
+      border: 1.5px solid #444;
+      background: #1a1a1a;
+      color: #eee;
+      border-radius: 3px;
+      min-width: 0;
+    }
+
+    .status {
+      font-size: 0.6rem;
+      color: #777;
+      text-align: center;
+    }
+
+    #game-container {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      background: #1a3a1a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    canvas {
+      display: block;
+      image-rendering: pixelated;
+      cursor: crosshair;
+      background: var(--grass);
+    }
+
+    .modal-overlay, .sign-overlay {
+      position: absolute; inset: 0;
+      background: rgba(0,0,0,0.78);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      padding: 12px;
+    }
+    .modal-overlay.open, .sign-overlay.open { display: flex; }
+
+    .modal {
+      background: #222;
+      border: 2px solid #444;
+      border-radius: 8px;
+      padding: 14px 16px;
+      width: min(340px, 100%);
+    }
+    .modal h2 { font-size: 0.95rem; margin-bottom: 10px; }
+    .modal label { display: block; font-size: 0.7rem; color: #999; margin-bottom: 2px; }
+    .modal input, .modal select {
+      width: 100%;
+      font-family: inherit;
+      font-size: 0.9rem;
+      padding: 7px 8px;
+      margin-bottom: 8px;
+      border: 2px solid #555;
+      background: #111;
+      color: #fff;
+      border-radius: 4px;
+    }
+    .modal-actions { display: flex; gap: 8px; margin-top: 4px; }
+    .modal-actions button {
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 0.8rem;
+      padding: 7px 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .btn-primary { background: var(--accent); color: #000; }
+    .btn-secondary { background: #444; color: #eee; }
+
+    .sign-stage {
+      position: relative;
+      width: min(280px, 92vw);
+      height: 340px;
+      background: linear-gradient(to bottom, #6bb3e8 0%, #4a9ad4 45%, #3a7bb0 100%);
+      border: 3px solid #222;
+      border-radius: 6px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 28px;
+    }
+    .pole {
+      position: absolute;
+      bottom: 0;
+      width: 22px;
+      height: 78%;
+      background: linear-gradient(to right, #6e6e6e, #9a9a9a 40%, #7a7a7a 60%, #5a5a5a);
+      border-radius: 3px 3px 0 0;
+      z-index: 1;
+    }
+    .sign-blade {
+      position: relative;
+      z-index: 2;
+      background: linear-gradient(to bottom, #1a5fb4, #0d3d7a);
+      color: white;
+      font-weight: 800;
+      font-size: 1.05rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 7px 14px;
+      min-width: 150px;
+      text-align: center;
+      border: 2.5px solid #c9a800;
+      border-radius: 2px;
+      box-shadow: 0 2px 0 #062a5a, 0 4px 10px rgba(0,0,0,0.35);
+      margin-bottom: 10px;
+      white-space: nowrap;
+      max-width: 230px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .sign-blade.top { transform: rotate(-1.8deg); margin-left: -12px; }
+    .sign-blade.bottom { transform: rotate(1.2deg); margin-left: 8px; }
+    .sign-controls {
+      position: absolute;
+      bottom: 12px;
+      left: 0; right: 0;
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      z-index: 5;
+    }
+    .sign-controls button {
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 0.8rem;
+      padding: 6px 12px;
+      border: 2px solid #333;
+      border-radius: 4px;
+      cursor: pointer;
+      background: #222;
+      color: #fff;
+    }
+    .sign-controls .btn-reverse { background: #1565c0; border-color: #0d47a1; }
+    .hint {
+      position: absolute;
+      bottom: 6px;
+      left: 6px;
+      right: 6px;
+      background: rgba(0,0,0,0.7);
+      color: #aaa;
+      font-size: 0.6rem;
+      padding: 4px 8px;
+      border-radius: 3px;
+      text-align: center;
+      pointer-events: none;
+      z-index: 10;
+    }
+  </style>
 </head>
 <body>
-<header>
-<div class="logo-wrap">
-<div class="logo-pole"></div>
-<div class="logo-signs">
-<div class="logo-sign top">Punny Place</div>
-<div class="logo-sign bottom">Planner Way</div>
-</div>
-<div class="version">v1.4</div>
-</div>
-<div class="level-tabs">
-<button data-level="1" class="active">1. Cul-De-Sac</button>
-<button data-level="2">2. Da Burbs</button>
-<button data-level="3">3. Lots & Blocks</button>
-</div>
-<div class="plan-row">
-<label for="planName">Plan:</label>
-<input type="text" id="planName" maxlength="28" placeholder="Name this plan…"/>
-</div>
-<div class="status" id="status">Tap a street to name · Tap yellow node for sign</div>
-</header>
-<div id="game-container">
-<canvas id="map"></canvas>
-<div class="hint">Black = asphalt · Yellow dots = intersections only · Blue tags = named streets</div>
-</div>
-<div class="modal-overlay" id="nameModal">
-<div class="modal">
-<h2>Name this street</h2>
-<label for="streetName">Street name</label>
-<input type="text" id="streetName" placeholder="e.g. Punny" maxlength="14" autocomplete="off"/>
-<label for="streetType">Type</label>
-<select id="streetType">
-<option value="ALY">Alley, ALY</option><option value="AVE">Avenue, AVE</option><option value="BLVD">Boulevard, BLVD</option><option value="CIR">Circle, CIR</option><option value="CT">Court, CT</option><option value="DR">Drive, DR</option><option value="HWY">Highway, HWY</option><option value="LN">Lane, LN</option><option value="PKWY">Parkway, PKWY</option><option value="PL">Place, PL</option><option value="RD">Road, RD</option><option value="ST" selected>Street, ST</option><option value="TER">Terrace, TER</option><option value="TRL">Trail, TRL</option><option value="WAY">Way, WAY</option>
-</select>
-<div class="modal-actions">
-<button class="btn-primary" id="saveName">Save</button>
-<button class="btn-secondary" id="cancelName">Cancel</button>
-</div>
-</div>
-</div>
-<div class="sign-overlay" id="signOverlay">
-<div class="sign-stage">
-<div class="pole"></div>
-<div class="sign-blade top" id="signTop">—</div>
-<div class="sign-blade bottom" id="signBottom">—</div>
-<div class="sign-controls">
-<button class="btn-reverse" id="btnReverse">↔ Reverse</button>
-<button id="btnCloseSign">Close</button>
-</div>
-</div>
-</div>
-<script>
-const VERSION='1.4',canvas=document.getElementById('map'),ctx=canvas.getContext('2d'),container=document.getElementById('game-container'),MAP_W=720,MAP_H=1280;
-let nodes=[],roads=[],selectedRoadId=null,signOrder=[0,1],currentSignRoads=[],planNames={1:'Cul-De-Sac',2:'Da Burbs',3:'Lots & Blocks'},currentLevel=1;
-const TYPE_FULL={ALY:'ALY',AVE:'AVE',BLVD:'BLVD',CIR:'CIR',CT:'CT',DR:'DR',HWY:'HWY',LN:'LN',PKWY:'PKWY',PL:'PL',RD:'RD',ST:'ST',TER:'TER',TRL:'TRL',WAY:'WAY'};
-function N(x,y){const n={id:nodes.length,x,y};nodes.push(n);return n}
-function generateLevel1(){nodes=[];roads=[];
-const s0=N(80,80),s1=N(80,280),s2=N(80,520),s3=N(80,780),s4=N(80,1100);
-roads.push({id:0,name:'',type:'HWY',points:[{x:80,y:30},{x:s0.x,y:s0.y},{x:s1.x,y:s1.y},{x:s2.x,y:s2.y},{x:s3.x,y:s3.y},{x:s4.x,y:s4.y},{x:80,y:1250}],nodeIds:[s0.id,s1.id,s2.id,s3.id,s4.id],isCulDeSac:false});
-const a1=N(280,80);roads.push({id:1,name:'',type:'CT',points:[{x:s0.x,y:s0.y},{x:180,y:80},{x:a1.x,y:a1.y},{x:340,y:80}],nodeIds:[s0.id,a1.id],isCulDeSac:true});
-const b1=N(220,280),b2=N(420,280);roads.push({id:2,name:'',type:'ST',points:[{x:s1.x,y:s1.y},{x:b1.x,y:b1.y},{x:b2.x,y:b2.y},{x:500,y:280}],nodeIds:[s1.id,b1.id,b2.id],isCulDeSac:true});
-const b3=N(220,420);roads.push({id:3,name:'',type:'LN',points:[{x:b1.x,y:b1.y},{x:220,y:350},{x:b3.x,y:b3.y},{x:300,y:420},{x:380,y:400}],nodeIds:[b1.id,b3.id],isCulDeSac:true});
-const c1=N(200,520),c2=N(380,480),c3=N(520,420);roads.push({id:4,name:'',type:'DR',points:[{x:s2.x,y:s2.y},{x:c1.x,y:c1.y},{x:300,y:500},{x:c2.x,y:c2.y},{x:c3.x,y:c3.y},{x:580,y:380}],nodeIds:[s2.id,c1.id,c2.id,c3.id],isCulDeSac:true});
-roads.push({id:5,name:'',type:'PL',points:[{x:c2.x,y:c2.y},{x:380,y:560},{x:420,y:620}],nodeIds:[c2.id],isCulDeSac:true});
-const d1=N(200,780),d2=N(360,780),d3=N(360,920);roads.push({id:6,name:'',type:'WAY',points:[{x:s3.x,y:s3.y},{x:d1.x,y:d1.y},{x:d2.x,y:d2.y},{x:480,y:780}],nodeIds:[s3.id,d1.id,d2.id],isCulDeSac:true});
-roads.push({id:7,name:'',type:'TER',points:[{x:d2.x,y:d2.y},{x:d3.x,y:d3.y},{x:500,y:920},{x:580,y:900}],nodeIds:[d2.id,d3.id],isCulDeSac:true});
-roads.push({id:8,name:'',type:'CT',points:[{x:d1.x,y:d1.y},{x:200,y:880},{x:180,y:960}],nodeIds:[d1.id],isCulDeSac:true});
-const e1=N(220,1100),e2=N(400,1100);roads.push({id:9,name:'',type:'RD',points:[{x:s4.x,y:s4.y},{x:e1.x,y:e1.y},{x:e2.x,y:e2.y},{x:520,y:1100}],nodeIds:[s4.id,e1.id,e2.id],isCulDeSac:true});
-roads.push({id:10,name:'',type:'ALY',points:[{x:e1.x,y:e1.y},{x:220,y:1180},{x:260,y:1220}],nodeIds:[e1.id],isCulDeSac:true});
-}
-function generateLevel2(){nodes=[];roads=[];
-const tl=N(60,80),tr=N(660,80),bl=N(60,1200),br=N(660,1200),tm=N(360,80),bm=N(360,1200),lm=N(60,640),rm=N(660,640);
-roads.push({id:0,name:'',type:'AVE',points:[{x:20,y:80},{x:tl.x,y:tl.y},{x:tm.x,y:tm.y},{x:tr.x,y:tr.y},{x:700,y:80}],nodeIds:[tl.id,tm.id,tr.id],isCulDeSac:false});
-roads.push({id:1,name:'',type:'AVE',points:[{x:20,y:1200},{x:bl.x,y:bl.y},{x:bm.x,y:bm.y},{x:br.x,y:br.y},{x:700,y:1200}],nodeIds:[bl.id,bm.id,br.id],isCulDeSac:false});
-roads.push({id:2,name:'',type:'ST',points:[{x:60,y:40},{x:tl.x,y:tl.y},{x:lm.x,y:lm.y},{x:bl.x,y:bl.y},{x:60,y:1240}],nodeIds:[tl.id,lm.id,bl.id],isCulDeSac:false});
-roads.push({id:3,name:'',type:'ST',points:[{x:660,y:40},{x:tr.x,y:tr.y},{x:rm.x,y:rm.y},{x:br.x,y:br.y},{x:660,y:1240}],nodeIds:[tr.id,rm.id,br.id],isCulDeSac:false});
-const i1=N(200,280),i2=N(360,280),i3=N(520,280);roads.push({id:4,name:'',type:'DR',points:[{x:lm.x,y:280},{x:i1.x,y:i1.y},{x:i2.x,y:i2.y},{x:i3.x,y:i3.y},{x:rm.x,y:280}],nodeIds:[i1.id,i2.id,i3.id],isCulDeSac:false});
-const j1=N(200,640),j2=N(360,640),j3=N(520,640);roads.push({id:5,name:'',type:'DR',points:[{x:lm.x,y:640},{x:j1.x,y:j1.y},{x:j2.x,y:j2.y},{x:j3.x,y:j3.y},{x:rm.x,y:640}],nodeIds:[j1.id,j2.id,j3.id],isCulDeSac:false});
-const k1=N(200,980),k2=N(360,980),k3=N(520,980);roads.push({id:6,name:'',type:'DR',points:[{x:lm.x,y:980},{x:k1.x,y:k1.y},{x:k2.x,y:k2.y},{x:k3.x,y:k3.y},{x:rm.x,y:980}],nodeIds:[k1.id,k2.id,k3.id],isCulDeSac:false});
-roads.push({id:7,name:'',type:'ST',points:[{x:360,y:80},{x:i2.x,y:i2.y},{x:j2.x,y:j2.y},{x:k2.x,y:k2.y},{x:360,y:1200}],nodeIds:[tm.id,i2.id,j2.id,k2.id,bm.id],isCulDeSac:false});
-roads.push({id:10,name:'',type:'CT',points:[{x:i1.x,y:i1.y},{x:140,y:200},{x:100,y:160}],nodeIds:[i1.id],isCulDeSac:true});
-roads.push({id:11,name:'',type:'CT',points:[{x:i3.x,y:i3.y},{x:580,y:200},{x:620,y:160}],nodeIds:[i3.id],isCulDeSac:true});
-roads.push({id:12,name:'',type:'LN',points:[{x:j1.x,y:j1.y},{x:140,y:560},{x:120,y:500},{x:160,y:460}],nodeIds:[j1.id],isCulDeSac:true});
-roads.push({id:13,name:'',type:'PL',points:[{x:j3.x,y:j3.y},{x:580,y:580},{x:620,y:520}],nodeIds:[j3.id],isCulDeSac:true});
-roads.push({id:14,name:'',type:'CT',points:[{x:k1.x,y:k1.y},{x:140,y:1060},{x:110,y:1120}],nodeIds:[k1.id],isCulDeSac:true});
-roads.push({id:15,name:'',type:'CT',points:[{x:k3.x,y:k3.y},{x:580,y:1060},{x:620,y:1120}],nodeIds:[k3.id],isCulDeSac:true});
-roads.push({id:16,name:'',type:'WAY',points:[{x:i2.x,y:i2.y},{x:360,y:200},{x:400,y:160}],nodeIds:[i2.id],isCulDeSac:true});
-roads.push({id:17,name:'',type:'TER',points:[{x:k2.x,y:k2.y},{x:360,y:1080},{x:320,y:1140}],nodeIds:[k2.id],isCulDeSac:true});
-roads.push({id:18,name:'',type:'RD',points:[{x:j2.x,y:j2.y},{x:280,y:720},{x:240,y:800},{x:280,y:860}],nodeIds:[j2.id],isCulDeSac:true});
-roads.push({id:19,name:'',type:'ALY',points:[{x:j2.x,y:j2.y},{x:440,y:720},{x:480,y:780},{x:460,y:840}],nodeIds:[j2.id],isCulDeSac:true});
-}
-function generateLevel3(){nodes=[];roads=[];
-const cols=4,rows=6,marginX=70,marginY=70,usableW=MAP_W-marginX*2,usableH=MAP_H-marginY*2,stepX=usableW/(cols-1),stepY=usableH/(rows-1);
-const grid=[];
-for(let r=0;r<rows;r++){grid[r]=[];for(let c=0;c<cols;c++){const n=N(marginX+c*stepX,marginY+r*stepY);grid[r][c]=n}}
-for(let r=0;r<rows;r++){const pts=[{x:10,y:grid[r][0].y}],nids=[];for(let c=0;c<cols;c++){pts.push({x:grid[r][c].x,y:grid[r][c].y});nids.push(grid[r][c].id)}pts.push({x:MAP_W-10,y:grid[r][cols-1].y});roads.push({id:r,name:'',type:r%2===0?'ST':'AVE',points:pts,nodeIds:nids,isCulDeSac:false})}
-for(let c=0;c<cols;c++){const pts=[{x:grid[0][c].x,y:10}],nids=[];for(let r=0;r<rows;r++){pts.push({x:grid[r][c].x,y:grid[r][c].y});nids.push(grid[r][c].id)}pts.push({x:grid[rows-1][c].x,y:MAP_H-10});roads.push({id:100+c,name:'',type:c%2===0?'AVE':'ST',points:pts,nodeIds:nids,isCulDeSac:false})}
-}
-function resize(){const cw=container.clientWidth,ch=container.clientHeight,scale=Math.min(cw/MAP_W,ch/MAP_H)*0.98;canvas.width=MAP_W;canvas.height=MAP_H;canvas.style.width=Math.floor(MAP_W*scale)+'px';canvas.style.height=Math.floor(MAP_H*scale)+'px';draw()}
-function drawGrass(){ctx.fillStyle='#3d7a3a';ctx.fillRect(0,0,MAP_W,MAP_H);ctx.fillStyle='rgba(0,0,0,0.04)';for(let i=0;i<200;i++)ctx.fillRect((i*67)%MAP_W,(i*43)%MAP_H,3,3)}
-function drawRoad(road){const pts=road.points;if(pts.length<2)return;ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);for(let i=1;i<pts.length;i++){if(i<pts.length-1){const xc=(pts[i].x+pts[i+1].x)/2,yc=(pts[i].y+pts[i+1].y)/2;ctx.quadraticCurveTo(pts[i].x,pts[i].y,xc,yc)}else ctx.lineTo(pts[i].x,pts[i].y)}ctx.strokeStyle='#0a0a0a';ctx.lineWidth=20;ctx.lineCap='round';ctx.lineJoin='round';ctx.stroke();ctx.strokeStyle='#1c1c1c';ctx.lineWidth=14;ctx.stroke();ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);for(let i=1;i<pts.length;i++){if(i<pts.length-1){const xc=(pts[i].x+pts[i+1].x)/2,yc=(pts[i].y+pts[i+1].y)/2;ctx.quadraticCurveTo(pts[i].x,pts[i].y,xc,yc)}else ctx.lineTo(pts[i].x,pts[i].y)}ctx.strokeStyle='#f0c800';ctx.lineWidth=1.6;ctx.setLineDash([6,5]);ctx.stroke();ctx.setLineDash([]);if(road.isCulDeSac){const last=pts[pts.length-1];if(!nodes.some(n=>Math.hypot(n.x-last.x,n.y-last.y)<18)){ctx.beginPath();ctx.arc(last.x,last.y,22,0,Math.PI*2);ctx.fillStyle='#1c1c1c';ctx.fill();ctx.strokeStyle='#0a0a0a';ctx.lineWidth=3;ctx.stroke()}}if(road.name)drawRoadSign(road)}
-function drawRoadSign(road){const pts=road.points,idx=Math.max(1,Math.floor(pts.length*0.4)),p=pts[idx],p2=pts[Math.min(idx+1,pts.length-1)],dx=p2.x-p.x,dy=p2.y-p.y,len=Math.hypot(dx,dy)||1,ox=-dy/len*20,oy=dx/len*20;let sx=p.x+ox,sy=p.y+oy;if(nodes.some(n=>Math.hypot(n.x-sx,n.y-sy)<24)){sx=p.x-ox;sy=p.y-oy}const label=`${road.name.toUpperCase()} ${TYPE_FULL[road.type]||road.type}`;ctx.font='bold 11px Overpass';const tw=ctx.measureText(label).width,hw=tw/2+6,hh=7;ctx.fillStyle='#1a5fb4';ctx.strokeStyle='#c9a800';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(sx-hw+2,sy-hh);ctx.lineTo(sx+hw-2,sy-hh);ctx.quadraticCurveTo(sx+hw,sy-hh,sx+hw,sy-hh+2);ctx.lineTo(sx+hw,sy+hh-2);ctx.quadraticCurveTo(sx+hw,sy+hh,sx+hw-2,sy+hh);ctx.lineTo(sx-hw+2,sy+hh);ctx.quadraticCurveTo(sx-hw,sy+hh,sx-hw,sy+hh-2);ctx.lineTo(sx-hw,sy-hh+2);ctx.quadraticCurveTo(sx-hw,sy-hh,sx-hw+2,sy-hh);ctx.closePath();ctx.fill();ctx.stroke();ctx.fillStyle='#fff';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(label,sx,sy);ctx.textAlign='left';ctx.textBaseline='alphabetic'}
-function drawNodes(){nodes.forEach(n=>{ctx.beginPath();ctx.arc(n.x,n.y,7,0,Math.PI*2);ctx.fillStyle='#f5d000';ctx.fill();ctx.strokeStyle='#111';ctx.lineWidth=2;ctx.stroke();ctx.beginPath();ctx.arc(n.x,n.y,3,0,Math.PI*2);ctx.fillStyle='#111';ctx.fill()})}
-function draw(){drawGrass();roads.forEach(drawRoad);drawNodes()}
-function getMousePos(e){const rect=canvas.getBoundingClientRect();return{x:(e.clientX-rect.left)*(MAP_W/rect.width),y:(e.clientY-rect.top)*(MAP_H/rect.height)}}
-function distToSeg(px,py,a,b){const dx=b.x-a.x,dy=b.y-a.y,len2=dx*dx+dy*dy;if(len2===0)return Math.hypot(px-a.x,py-a.y);let t=((px-a.x)*dx+(py-a.y)*dy)/len2;t=Math.max(0,Math.min(1,t));return Math.hypot(px-(a.x+t*dx),py-(a.y+t*dy))}
-function findNearestRoad(mx,my,th=15){let best=null,bestD=th;for(const road of roads){const pts=road.points;for(let i=0;i<pts.length-1;i++){const d=distToSeg(mx,my,pts[i],pts[i+1]);if(d<bestD){bestD=d;best=road}}}return best}
-function findNearestNode(mx,my,th=13){let best=null,bestD=th;for(const n of nodes){const d=Math.hypot(mx-n.x,my-n.y);if(d<bestD){bestD=d;best=n}}return best}
-function roadsAtNode(id){return roads.filter(r=>r.nodeIds.includes(id))}
-canvas.addEventListener('click',e=>{const{x,y}=getMousePos(e);const node=findNearestNode(x,y);if(node){openSign(node);return}const road=findNearestRoad(x,y);if(road)openNameModal(road)});
-function openNameModal(road){selectedRoadId=road.id;document.getElementById('streetName').value=road.name||'';document.getElementById('streetType').value=road.type||'ST';document.getElementById('nameModal').classList.add('open');setTimeout(()=>document.getElementById('streetName').focus(),30)}
-document.getElementById('saveName').onclick=()=>{const name=document.getElementById('streetName').value.trim(),type=document.getElementById('streetType').value;if(!name)return;const road=roads.find(r=>r.id===selectedRoadId);if(road){road.name=name;road.type=type}document.getElementById('nameModal').classList.remove('open');draw();document.getElementById('status').textContent=`"${name} ${TYPE_FULL[type]}" named`};
-document.getElementById('cancelName').onclick=()=>document.getElementById('nameModal').classList.remove('open');
-function openSign(node){currentSignRoads=roadsAtNode(node.id);if(!currentSignRoads.length)return;signOrder=[0,1];updateSignBlades();document.getElementById('signOverlay').classList.add('open')}
-function updateSignBlades(){const top=currentSignRoads[signOrder[0]]||null,bot=currentSignRoads[signOrder[1]]||currentSignRoads[0]||null;const fmt=r=>!r?'—':(!r.name?'(unnamed)':`${r.name.toUpperCase()} ${TYPE_FULL[r.type]||r.type}`);document.getElementById('signTop').textContent=fmt(top);document.getElementById('signBottom').textContent=fmt(bot)}
-document.getElementById('btnReverse').onclick=()=>{if(currentSignRoads.length<2)return;signOrder=[signOrder[1],signOrder[0]];updateSignBlades()};
-document.getElementById('btnCloseSign').onclick=()=>document.getElementById('signOverlay').classList.remove('open');
-const planInput=document.getElementById('planName');
-planInput.addEventListener('change',()=>{planNames[currentLevel]=planInput.value.trim()||planInput.placeholder});
-planInput.addEventListener('blur',()=>{if(!planInput.value.trim())planInput.value=planNames[currentLevel]});
-document.querySelectorAll('.level-tabs button').forEach(btn=>{btn.onclick=()=>{document.querySelectorAll('.level-tabs button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');loadLevel(+btn.dataset.level)}});
-function loadLevel(lvl){currentLevel=lvl;if(lvl===1)generateLevel1();else if(lvl===2)generateLevel2();else generateLevel3();planInput.value=planNames[lvl];planInput.placeholder=planNames[lvl];const names={1:'Cul-De-Sac',2:'Da Burbs',3:'Lots & Blocks'};document.getElementById('status').textContent=`${names[lvl]} · ${nodes.length} intersections · v${VERSION}`;draw()}
-window.addEventListener('resize',resize);resize();loadLevel(1);
-</script>
+  <header>
+    <div class="logo-wrap">
+      <div class="logo-pole"></div>
+      <div class="logo-signs">
+        <div class="logo-sign top">Punny Place</div>
+        <div class="logo-sign bottom">Planner Way</div>
+      </div>
+      <div class="version">v1.5</div>
+    </div>
+
+    <div class="level-tabs">
+      <button data-level="1" class="active">1. Cul-De-Sac</button>
+      <button data-level="2">2. Da Burbs</button>
+      <button data-level="3">3. Lots & Blocks</button>
+    </div>
+
+    <div class="plan-row">
+      <label for="planName">Plan:</label>
+      <input type="text" id="planName" maxlength="28" placeholder="Name this plan…" />
+    </div>
+
+    <div class="status" id="status">Tap a street to name · Tap yellow node for sign</div>
+  </header>
+
+  <div id="game-container">
+    <canvas id="map"></canvas>
+    <div class="hint">Black = asphalt · Yellow dots = intersections only · Blue tags = named streets</div>
+  </div>
+
+  <div class="modal-overlay" id="nameModal">
+    <div class="modal">
+      <h2>Name this street</h2>
+      <label for="streetName">Street name</label>
+      <input type="text" id="streetName" placeholder="e.g. Punny" maxlength="14" autocomplete="off" />
+      <label for="streetType">Type</label>
+      <select id="streetType">
+        <option value="ALY">Alley, ALY</option>
+        <option value="AVE">Avenue, AVE</option>
+        <option value="BLVD">Boulevard, BLVD</option>
+        <option value="CIR">Circle, CIR</option>
+        <option value="CT">Court, CT</option>
+        <option value="DR">Drive, DR</option>
+        <option value="HWY">Highway, HWY</option>
+        <option value="LN">Lane, LN</option>
+        <option value="PKWY">Parkway, PKWY</option>
+        <option value="PL">Place, PL</option>
+        <option value="RD">Road, RD</option>
+        <option value="ST" selected>Street, ST</option>
+        <option value="TER">Terrace, TER</option>
+        <option value="TRL">Trail, TRL</option>
+        <option value="WAY">Way, WAY</option>
+      </select>
+      <div class="modal-actions">
+        <button class="btn-primary" id="saveName">Save</button>
+        <button class="btn-secondary" id="cancelName">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sign-overlay" id="signOverlay">
+    <div class="sign-stage">
+      <div class="pole"></div>
+      <div class="sign-blade top" id="signTop">—</div>
+      <div class="sign-blade bottom" id="signBottom">—</div>
+      <div class="sign-controls">
+        <button class="btn-reverse" id="btnReverse">↔ Reverse</button>
+        <button id="btnCloseSign">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const VERSION = '1.5';
+    const canvas = document.getElementById('map');
+    const ctx = canvas.getContext('2d');
+    const container = document.getElementById('game-container');
+    const MAP_W = 720;
+    const MAP_H = 1280;
+
+    let nodes = [];
+    let roads = [];
+    let selectedRoadId = null;
+    let signOrder = [0, 1];
+    let currentSignRoads = [];
+    let planNames = { 1: 'Cul-De-Sac', 2: 'Da Burbs', 3: 'Lots & Blocks' };
+    let currentLevel = 1;
+
+    const TYPE_FULL = {
+      ALY:'ALY', AVE:'AVE', BLVD:'BLVD', CIR:'CIR', CT:'CT',
+      DR:'DR', HWY:'HWY', LN:'LN', PKWY:'PKWY', PL:'PL',
+      RD:'RD', ST:'ST', TER:'TER', TRL:'TRL', WAY:'WAY'
+    };
+
+    function N(x, y) {
+      const n = { id: nodes.length, x, y };
+      nodes.push(n);
+      return n;
+    }
+
+    // Level 1: Cul-De-Sac – matches first sketch
+    function generateLevel1() {
+      nodes = [];
+      roads = [];
+
+      const s0 = N(90, 120);
+      const s1 = N(90, 320);
+      const s2 = N(90, 560);
+      const s3 = N(90, 820);
+      const s4 = N(90, 1100);
+
+      roads.push({
+        id: 0, name: '', type: 'HWY',
+        points: [
+          {x:90, y:40},
+          {x:s0.x, y:s0.y},
+          {x:s1.x, y:s1.y},
+          {x:s2.x, y:s2.y},
+          {x:s3.x, y:s3.y},
+          {x:s4.x, y:s4.y},
+          {x:90, y:1240}
+        ],
+        nodeIds: [s0.id, s1.id, s2.id, s3.id, s4.id],
+        isCulDeSac: false
+      });
+
+      const a1 = N(280, 120);
+      roads.push({
+        id: 1, name: '', type: 'CT',
+        points: [
+          {x:s0.x, y:s0.y},
+          {x:180, y:120},
+          {x:a1.x, y:a1.y},
+          {x:360, y:120}
+        ],
+        nodeIds: [s0.id, a1.id],
+        isCulDeSac: true
+      });
+
+      const b1 = N(240, 320);
+      const b2 = N(420, 320);
+      roads.push({
+        id: 2, name: '', type: 'ST',
+        points: [
+          {x:s1.x, y:s1.y},
+          {x:b1.x, y:b1.y},
+          {x:b2.x, y:b2.y},
+          {x:520, y:320}
+        ],
+        nodeIds: [s1.id, b1.id, b2.id],
+        isCulDeSac: true
+      });
+      const b3 = N(240, 460);
+      roads.push({
+        id: 3, name: '', type: 'LN',
+        points: [
+          {x:b1.x, y:b1.y},
+          {x:240, y:390},
+          {x:b3.x, y:b3.y},
+          {x:320, y:460},
+          {x:400, y:440}
+        ],
+        nodeIds: [b1.id, b3.id],
+        isCulDeSac: true
+      });
+
+      const c1 = N(220, 560);
+      const c2 = N(400, 520);
+      const c3 = N(540, 460);
+      roads.push({
+        id: 4, name: '', type: 'DR',
+        points: [
+          {x:s2.x, y:s2.y},
+          {x:c1.x, y:c1.y},
+          {x:310, y:540},
+          {x:c2.x, y:c2.y},
+          {x:c3.x, y:c3.y},
+          {x:600, y:420}
+        ],
+        nodeIds: [s2.id, c1.id, c2.id, c3.id],
+        isCulDeSac: true
+      });
+      roads.push({
+        id: 5, name: '', type: 'PL',
+        points: [
+          {x:c2.x, y:c2.y},
+          {x:400, y:600},
+          {x:440, y:660}
+        ],
+        nodeIds: [c2.id],
+        isCulDeSac: true
+      });
+
+      const d1 = N(220, 820);
+      const d2 = N(380, 820);
+      const d3 = N(380, 960);
+      roads.push({
+        id: 6, name: '', type: 'WAY',
+        points: [
+          {x:s3.x, y:s3.y},
+          {x:d1.x, y:d1.y},
+          {x:d2.x, y:d2.y},
+          {x:500, y:820}
+        ],
+        nodeIds: [s3.id, d1.id, d2.id],
+        isCulDeSac: true
+      });
+      roads.push({
+        id: 7, name: '', type: 'TER',
+        points: [
+          {x:d2.x, y:d2.y},
+          {x:d3.x, y:d3.y},
+          {x:520, y:960},
+          {x:600, y:940}
+        ],
+        nodeIds: [d2.id, d3.id],
+        isCulDeSac: true
+      });
+      roads.push({
+        id: 8, name: '', type: 'CT',
+        points: [
+          {x:d1.x, y:d1.y},
+          {x:220, y:920},
+          {x:200, y:1000}
+        ],
+        nodeIds: [d1.id],
+        isCulDeSac: true
+      });
+
+      const e1 = N(240, 1100);
+      const e2 = N(420, 1100);
+      roads.push({
+        id: 9, name: '', type: 'RD',
+        points: [
+          {x:s4.x, y:s4.y},
+          {x:e1.x, y:e1.y},
+          {x:e2.x, y:e2.y},
+          {x:540, y:1100}
+        ],
+        nodeIds: [s4.id, e1.id, e2.id],
+        isCulDeSac: true
+      });
+      roads.push({
+        id: 10, name: '', type: 'ALY',
+        points: [
+          {x:e1.x, y:e1.y},
+          {x:240, y:1180},
+          {x:280, y:1220}
+        ],
+        nodeIds: [e1.id],
+        isCulDeSac: true
+      });
+    }
+
+    // Level 2: Da Burbs – matches second sketch
+    function generateLevel2() {
+      nodes = [];
+      roads = [];
+
+      const tl = N(70, 100);
+      const tr = N(650, 100);
+      const bl = N(70, 1180);
+      const br = N(650, 1180);
+      const tm = N(360, 100);
+      const bm = N(360, 1180);
+      const lm = N(70, 640);
+      const rm = N(650, 640);
+
+      roads.push({
+        id: 0, name: '', type: 'AVE',
+        points: [{x:20,y:100}, {x:tl.x,y:tl.y}, {x:tm.x,y:tm.y}, {x:tr.x,y:tr.y}, {x:700,y:100}],
+        nodeIds: [tl.id, tm.id, tr.id], isCulDeSac: false
+      });
+      roads.push({
+        id: 1, name: '', type: 'AVE',
+        points: [{x:20,y:1180}, {x:bl.x,y:bl.y}, {x:bm.x,y:bm.y}, {x:br.x,y:br.y}, {x:700,y:1180}],
+        nodeIds: [bl.id, bm.id, br.id], isCulDeSac: false
+      });
+      roads.push({
+        id: 2, name: '', type: 'ST',
+        points: [{x:70,y:40}, {x:tl.x,y:tl.y}, {x:lm.x,y:lm.y}, {x:bl.x,y:bl.y}, {x:70,y:1240}],
+        nodeIds: [tl.id, lm.id, bl.id], isCulDeSac: false
+      });
+      roads.push({
+        id: 3, name: '', type: 'ST',
+        points: [{x:650,y:40}, {x:tr.x,y:tr.y}, {x:rm.x,y:rm.y}, {x:br.x,y:br.y}, {x:650,y:1240}],
+        nodeIds: [tr.id, rm.id, br.id], isCulDeSac: false
+      });
+
+      const i1 = N(200, 300);
+      const i2 = N(360, 300);
+      const i3 = N(520, 300);
+      roads.push({
+        id: 4, name: '', type: 'DR',
+        points: [{x:lm.x,y:300}, {x:i1.x,y:i1.y}, {x:i2.x,y:i2.y}, {x:i3.x,y:i3.y}, {x:rm.x,y:300}],
+        nodeIds: [i1.id, i2.id, i3.id], isCulDeSac: false
+      });
+
+      const j1 = N(200, 640);
+      const j2 = N(360, 640);
+      const j3 = N(520, 640);
+      roads.push({
+        id: 5, name: '', type: 'DR',
+        points: [{x:lm.x,y:640}, {x:j1.x,y:j1.y}, {x:j2.x,y:j2.y}, {x:j3.x,y:j3.y}, {x:rm.x,y:640}],
+        nodeIds: [j1.id, j2.id, j3.id], isCulDeSac: false
+      });
+
+      const k1 = N(200, 980);
+      const k2 = N(360, 980);
+      const k3 = N(520, 980);
+      roads.push({
+        id: 6, name: '', type: 'DR',
+        points: [{x:lm.x,y:980}, {x:k1.x,y:k1.y}, {x:k2.x,y:k2.y}, {x:k3.x,y:k3.y}, {x:rm.x,y:980}],
+        nodeIds: [k1.id, k2.id, k3.id], isCulDeSac: false
+      });
+
+      roads.push({
+        id: 7, name: '', type: 'ST',
+        points: [
+          {x:360, y:100},
+          {x:i2.x, y:i2.y},
+          {x:j2.x, y:j2.y},
+          {x:k2.x, y:k2.y},
+          {x:360, y:1180}
+        ],
+        nodeIds: [tm.id, i2.id, j2.id, k2.id, bm.id],
+        isCulDeSac: false
+      });
+
+      roads.push({
+        id: 10, name: '', type: 'CT',
+        points: [{x:i1.x,y:i1.y}, {x:130,y:220}, {x:100,y:170}],
+        nodeIds: [i1.id], isCulDeSac: true
+      });
+      roads.push({
+        id: 11, name: '', type: 'CT',
+        points: [{x:i3.x,y:i3.y}, {x:590,y:220}, {x:620,y:170}],
+        nodeIds: [i3.id], isCulDeSac: true
+      });
+      roads.push({
+        id: 12, name: '', type: 'LN',
+        points: [{x:j1.x,y:j1.y}, {x:130,y:560}, {x:110,y:500}, {x:150,y:450}],
+        nodeIds: [j1.id], isCulDeSac: true
+      });
+      roads.push({
+        id: 13, name: '', type: 'PL',
+        points: [{x:j3.x,y:j3.y}, {x:590,y:580}, {x:630,y:520}],
+        nodeIds: [j3.id], isCulDeSac: true
+      });
+      roads.push({
+        id: 14, name: '', type: 'CT',
+        points: [{x:k1.x,y:k1.y}, {x:130,y:1060}, {x:100,y:1120}],
+        nodeIds: [k1.id], isCulDeSac: true
+      });
+      roads.push({
+        id: 15, name: '', type: 'CT',
+        points: [{x:k3.x,y:k3.y}, {x:590,y:1060}, {x:630,y:1120}],
+        nodeIds: [k3.id], isCulDeSac: true
+      });
+      roads.push({
+        id: 16, name: '', type: 'WAY',
+        points: [{x:i2.x,y:i2.y}, {x:360,y:200}, {x:400,y:160}],
+        nodeIds: [i2.id], isCulDeSac: true
+      });
+      roads.push({
+        id: 17, name: '', type: 'TER',
+        points: [{x:k2.x,y:k2.y}, {x:360,y:1080}, {x:320,y:1140}],
+        nodeIds: [k2.id], isCulDeSac: true
+      });
+      roads.push({
+        id: 18, name: '', type: 'RD',
+        points: [{x:j2.x,y:j2.y}, {x:280,y:720}, {x:240,y:800}, {x:280,y:860}],
+        nodeIds: [j2.id], isCulDeSac: true
+      });
+      roads.push({
+        id: 19, name: '', type: 'ALY',
+        points: [{x:j2.x,y:j2.y}, {x:440,y:720}, {x:480,y:780}, {x:460,y:840}],
+        nodeIds: [j2.id], isCulDeSac: true
+      });
+    }
+
+    // Level 3: 4 vertical × 6 horizontal
+    function generateLevel3() {
+      nodes = [];
+      roads = [];
+
+      const cols = 4;
+      const rows = 6;
+      const marginX = 70;
+      const marginY = 70;
+      const usableW = MAP_W - marginX * 2;
+      const usableH = MAP_H - marginY * 2;
+      const stepX = usableW / (cols - 1);
+      const stepY = usableH / (rows - 1);
+
+      const grid = [];
+      for (let r = 0; r < rows; r++) {
+        grid[r] = [];
+        for (let c = 0; c < cols; c++) {
+          const n = N(marginX + c * stepX, marginY + r * stepY);
+          grid[r][c] = n;
+        }
+      }
+
+      for (let r = 0; r < rows; r++) {
+        const pts = [{ x: 10, y: grid[r][0].y }];
+        const nids = [];
+        for (let c = 0; c < cols; c++) {
+          pts.push({ x: grid[r][c].x, y: grid[r][c].y });
+          nids.push(grid[r][c].id);
+        }
+        pts.push({ x: MAP_W - 10, y: grid[r][cols - 1].y });
+        roads.push({
+          id: r, name: '', type: r % 2 === 0 ? 'ST' : 'AVE',
+          points: pts, nodeIds: nids, isCulDeSac: false
+        });
+      }
+
+      for (let c = 0; c < cols; c++) {
+        const pts = [{ x: grid[0][c].x, y: 10 }];
+        const nids = [];
+        for (let r = 0; r < rows; r++) {
+          pts.push({ x: grid[r][c].x, y: grid[r][c].y });
+          nids.push(grid[r][c].id);
+        }
+        pts.push({ x: grid[rows - 1][c].x, y: MAP_H - 10 });
+        roads.push({
+          id: 100 + c, name: '', type: c % 2 === 0 ? 'AVE' : 'ST',
+          points: pts, nodeIds: nids, isCulDeSac: false
+        });
+      }
+    }
+
+    function resize() {
+      const cw = container.clientWidth, ch = container.clientHeight;
+      const scale = Math.min(cw / MAP_W, ch / MAP_H) * 0.98;
+      canvas.width = MAP_W;
+      canvas.height = MAP_H;
+      canvas.style.width = Math.floor(MAP_W * scale) + 'px';
+      canvas.style.height = Math.floor(MAP_H * scale) + 'px';
+      draw();
+    }
+
+    function drawGrass() {
+      ctx.fillStyle = '#3d7a3a';
+      ctx.fillRect(0, 0, MAP_W, MAP_H);
+      ctx.fillStyle = 'rgba(0,0,0,0.04)';
+      for (let i = 0; i < 200; i++) {
+        ctx.fillRect((i * 67) % MAP_W, (i * 43) % MAP_H, 3, 3);
+      }
+    }
+
+    function drawRoad(road) {
+      const pts = road.points;
+      if (pts.length < 2) return;
+
+      ctx.beginPath();
+      ctx.moveTo(pts[0].x, pts[0].y);
+      for (let i = 1; i < pts.length; i++) {
+        if (i < pts.length - 1) {
+          const xc = (pts[i].x + pts[i + 1].x) / 2;
+          const yc = (pts[i].y + pts[i + 1].y) / 2;
+          ctx.quadraticCurveTo(pts[i].x, pts[i].y, xc, yc);
+        } else {
+          ctx.lineTo(pts[i].x, pts[i].y);
+        }
+      }
+      ctx.strokeStyle = '#0a0a0a';
+      ctx.lineWidth = 20;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.stroke();
+
+      ctx.strokeStyle = '#1c1c1c';
+      ctx.lineWidth = 14;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(pts[0].x, pts[0].y);
+      for (let i = 1; i < pts.length; i++) {
+        if (i < pts.length - 1) {
+          const xc = (pts[i].x + pts[i + 1].x) / 2;
+          const yc = (pts[i].y + pts[i + 1].y) / 2;
+          ctx.quadraticCurveTo(pts[i].x, pts[i].y, xc, yc);
+        } else {
+          ctx.lineTo(pts[i].x, pts[i].y);
+        }
+      }
+      ctx.strokeStyle = '#f0c800';
+      ctx.lineWidth = 1.6;
+      ctx.setLineDash([6, 5]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      if (road.isCulDeSac) {
+        const last = pts[pts.length - 1];
+        if (!nodes.some(n => Math.hypot(n.x - last.x, n.y - last.y) < 18)) {
+          ctx.beginPath();
+          ctx.arc(last.x, last.y, 22, 0, Math.PI * 2);
+          ctx.fillStyle = '#1c1c1c';
+          ctx.fill();
+          ctx.strokeStyle = '#0a0a0a';
+          ctx.lineWidth = 3;
+          ctx.stroke();
+        }
+      }
+
+      if (road.name) drawRoadSign(road);
+    }
+
+    function drawRoadSign(road) {
+      const pts = road.points;
+      const idx = Math.max(1, Math.floor(pts.length * 0.4));
+      const p = pts[idx];
+      const p2 = pts[Math.min(idx + 1, pts.length - 1)];
+      const dx = p2.x - p.x, dy = p2.y - p.y;
+      const len = Math.hypot(dx, dy) || 1;
+      const ox = -dy / len * 20, oy = dx / len * 20;
+      let sx = p.x + ox, sy = p.y + oy;
+      if (nodes.some(n => Math.hypot(n.x - sx, n.y - sy) < 24)) {
+        sx = p.x - ox;
+        sy = p.y - oy;
+      }
+
+      const label = `${road.name.toUpperCase()} ${TYPE_FULL[road.type] || road.type}`;
+      ctx.font = 'bold 11px Overpass';
+      const tw = ctx.measureText(label).width;
+      const hw = tw / 2 + 6, hh = 7;
+
+      ctx.fillStyle = '#1a5fb4';
+      ctx.strokeStyle = '#c9a800';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(sx - hw + 2, sy - hh);
+      ctx.lineTo(sx + hw - 2, sy - hh);
+      ctx.quadraticCurveTo(sx + hw, sy - hh, sx + hw, sy - hh + 2);
+      ctx.lineTo(sx + hw, sy + hh - 2);
+      ctx.quadraticCurveTo(sx + hw, sy + hh, sx + hw - 2, sy + hh);
+      ctx.lineTo(sx - hw + 2, sy + hh);
+      ctx.quadraticCurveTo(sx - hw, sy + hh, sx - hw, sy + hh - 2);
+      ctx.lineTo(sx - hw, sy - hh + 2);
+      ctx.quadraticCurveTo(sx - hw, sy - hh, sx - hw + 2, sy - hh);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#fff';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(label, sx, sy);
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'alphabetic';
+    }
+
+    function drawNodes() {
+      nodes.forEach(n => {
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, 7, 0, Math.PI * 2);
+        ctx.fillStyle = '#f5d000';
+        ctx.fill();
+        ctx.strokeStyle = '#111';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, 3, 0, Math.PI * 2);
+        ctx.fillStyle = '#111';
+        ctx.fill();
+      });
+    }
+
+    function draw() {
+      drawGrass();
+      roads.forEach(drawRoad);
+      drawNodes();
+    }
+
+    function getMousePos(e) {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: (e.clientX - rect.left) * (MAP_W / rect.width),
+        y: (e.clientY - rect.top) * (MAP_H / rect.height)
+      };
+    }
+
+    function distToSeg(px, py, a, b) {
+      const dx = b.x - a.x, dy = b.y - a.y;
+      const len2 = dx * dx + dy * dy;
+      if (len2 === 0) return Math.hypot(px - a.x, py - a.y);
+      let t = ((px - a.x) * dx + (py - a.y) * dy) / len2;
+      t = Math.max(0, Math.min(1, t));
+      return Math.hypot(px - (a.x + t * dx), py - (a.y + t * dy));
+    }
+
+    function findNearestRoad(mx, my, th = 15) {
+      let best = null, bestD = th;
+      for (const road of roads) {
+        const pts = road.points;
+        for (let i = 0; i < pts.length - 1; i++) {
+          const d = distToSeg(mx, my, pts[i], pts[i + 1]);
+          if (d < bestD) { bestD = d; best = road; }
+        }
+      }
+      return best;
+    }
+
+    function findNearestNode(mx, my, th = 13) {
+      let best = null, bestD = th;
+      for (const n of nodes) {
+        const d = Math.hypot(mx - n.x, my - n.y);
+        if (d < bestD) { bestD = d; best = n; }
+      }
+      return best;
+    }
+
+    function roadsAtNode(id) {
+      return roads.filter(r => r.nodeIds.includes(id));
+    }
+
+    canvas.addEventListener('click', e => {
+      const { x, y } = getMousePos(e);
+      const node = findNearestNode(x, y);
+      if (node) { openSign(node); return; }
+      const road = findNearestRoad(x, y);
+      if (road) openNameModal(road);
+    });
+
+    function openNameModal(road) {
+      selectedRoadId = road.id;
+      document.getElementById('streetName').value = road.name || '';
+      document.getElementById('streetType').value = road.type || 'ST';
+      document.getElementById('nameModal').classList.add('open');
+      setTimeout(() => document.getElementById('streetName').focus(), 30);
+    }
+
+    document.getElementById('saveName').onclick = () => {
+      const name = document.getElementById('streetName').value.trim();
+      const type = document.getElementById('streetType').value;
+      if (!name) return;
+      const road = roads.find(r => r.id === selectedRoadId);
+      if (road) { road.name = name; road.type = type; }
+      document.getElementById('nameModal').classList.remove('open');
+      draw();
+      document.getElementById('status').textContent = `"${name} ${TYPE_FULL[type]}" named`;
+    };
+    document.getElementById('cancelName').onclick = () => {
+      document.getElementById('nameModal').classList.remove('open');
+    };
+
+    function openSign(node) {
+      currentSignRoads = roadsAtNode(node.id);
+      if (!currentSignRoads.length) return;
+      signOrder = [0, 1];
+      updateSignBlades();
+      document.getElementById('signOverlay').classList.add('open');
+    }
+
+    function updateSignBlades() {
+      const top = currentSignRoads[signOrder[0]] || null;
+      const bot = currentSignRoads[signOrder[1]] || currentSignRoads[0] || null;
+      const fmt = r => !r ? '—' : (!r.name ? '(unnamed)' : `${r.name.toUpperCase()} ${TYPE_FULL[r.type] || r.type}`);
+      document.getElementById('signTop').textContent = fmt(top);
+      document.getElementById('signBottom').textContent = fmt(bot);
+    }
+
+    document.getElementById('btnReverse').onclick = () => {
+      if (currentSignRoads.length < 2) return;
+      signOrder = [signOrder[1], signOrder[0]];
+      updateSignBlades();
+    };
+    document.getElementById('btnCloseSign').onclick = () => {
+      document.getElementById('signOverlay').classList.remove('open');
+    };
+
+    const planInput = document.getElementById('planName');
+    planInput.addEventListener('change', () => {
+      planNames[currentLevel] = planInput.value.trim() || planInput.placeholder;
+    });
+    planInput.addEventListener('blur', () => {
+      if (!planInput.value.trim()) planInput.value = planNames[currentLevel];
+    });
+
+    document.querySelectorAll('.level-tabs button').forEach(btn => {
+      btn.onclick = () => {
+        document.querySelectorAll('.level-tabs button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        loadLevel(+btn.dataset.level);
+      };
+    });
+
+    function loadLevel(lvl) {
+      currentLevel = lvl;
+      if (lvl === 1) generateLevel1();
+      else if (lvl === 2) generateLevel2();
+      else generateLevel3();
+
+      planInput.value = planNames[lvl];
+      planInput.placeholder = planNames[lvl];
+
+      const names = { 1: 'Cul-De-Sac', 2: 'Da Burbs', 3: 'Lots & Blocks' };
+      document.getElementById('status').textContent =
+        `${names[lvl]} · ${nodes.length} intersections · v${VERSION}`;
+      draw();
+    }
+
+    window.addEventListener('resize', resize);
+    resize();
+    loadLevel(1);
+  </script>
 </body>
 </html>
