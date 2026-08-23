@@ -57,7 +57,7 @@ canvas{display:block;image-rendering:pixelated;cursor:crosshair;background:var(-
 <div class="logo-sign bottom">Planner Way</div>
 </div>
 <div class="logo-pole"></div>
-<div class="version">v6.2</div>
+<div class="version">v6.3</div>
 </div>
 <div class="level-tabs">
 <button data-level="1" class="active">1. Cul-De-Sac</button>
@@ -72,7 +72,7 @@ canvas{display:block;image-rendering:pixelated;cursor:crosshair;background:var(-
 </header>
 <div id="game-container">
 <canvas id="map"></canvas>
-<div class="hint">Yellow dots = intersections where roads touch · Blue tags = named streets</div>
+<div class="hint">Yellow dots = real junctions only · Blue tags = named streets</div>
 </div>
 <div class="modal-overlay" id="nameModal">
 <div class="modal">
@@ -105,7 +105,7 @@ canvas{display:block;image-rendering:pixelated;cursor:crosshair;background:var(-
 </div>
 </div>
 <script>
-const VERSION='6.2';
+const VERSION='6.3';
 const canvas=document.getElementById('map'),ctx=canvas.getContext('2d'),container=document.getElementById('game-container');
 const MAP_W=720,MAP_H=1280;
 let nodes=[],roads=[],selectedRoadId=null,signOrder=[0,1],currentSignRoads=[];
@@ -209,30 +209,39 @@ if(len2===0)return Math.hypot(px-a.x,py-a.y);
 let t=((px-a.x)*dx+(py-a.y)*dy)/len2;t=Math.max(0,Math.min(1,t));
 return Math.hypot(px-(a.x+t*dx),py-(a.y+t*dy));
 }
-function pointOnRoad(px,py,road,th){
-const pts=road.points;
-for(let i=0;i<pts.length;i++){if(Math.hypot(px-pts[i].x,py-pts[i].y)<th)return true;}
-for(let i=0;i<pts.length-1;i++){if(distToSeg(px,py,pts[i],pts[i+1])<th)return true;}
-return false;
+function closestPointOnRoad(px,py,road){
+const pts=road.points;let bestD=Infinity,bestX=px,bestY=py;
+for(let i=0;i<pts.length;i++){const d=Math.hypot(px-pts[i].x,py-pts[i].y);if(d<bestD){bestD=d;bestX=pts[i].x;bestY=pts[i].y;}}
+for(let i=0;i<pts.length-1;i++){const a=pts[i],b=pts[i+1];const dx=b.x-a.x,dy=b.y-a.y,len2=dx*dx+dy*dy;if(len2===0)continue;let t=((px-a.x)*dx+(py-a.y)*dy)/len2;t=Math.max(0,Math.min(1,t));const cx=a.x+t*dx,cy=a.y+t*dy;const d=Math.hypot(px-cx,py-cy);if(d<bestD){bestD=d;bestX=cx;bestY=cy;}}
+return{d:bestD,x:bestX,y:bestY};
 }
 function buildTrueIntersections(){
-const TH=24;
+const TH=12;
 const candidates=[];
-roads.forEach(r=>{r.points.forEach(p=>{candidates.push({x:p.x,y:p.y,roadIds:new Set([r.id])});});});
-candidates.forEach(c=>{roads.forEach(r=>{if(c.roadIds.has(r.id))return;if(pointOnRoad(c.x,c.y,r,TH))c.roadIds.add(r.id);});});
-const multi=candidates.filter(c=>c.roadIds.size>=2);
-const used=new Array(multi.length).fill(false);
+roads.forEach(r=>{
+const ends=[r.points[0],r.points[r.points.length-1]];
+ends.forEach(p=>{
+roads.forEach(other=>{
+if(other.id===r.id)return;
+const cp=closestPointOnRoad(p.x,p.y,other);
+if(cp.d<TH){
+candidates.push({x:Math.round((p.x+cp.x)/2),y:Math.round((p.y+cp.y)/2),roadIds:new Set([r.id,other.id])});
+}
+});
+});
+});
+const used=new Array(candidates.length).fill(false);
 const trueNodes=[];let nid=0;
-for(let i=0;i<multi.length;i++){
+for(let i=0;i<candidates.length;i++){
 if(used[i])continue;
-let sx=multi[i].x,sy=multi[i].y,cnt=1;
-const ids=new Set(multi[i].roadIds);
+let sx=candidates[i].x,sy=candidates[i].y,cnt=1;
+const ids=new Set(candidates[i].roadIds);
 used[i]=true;
-for(let j=i+1;j<multi.length;j++){
+for(let j=i+1;j<candidates.length;j++){
 if(used[j])continue;
-if(Math.hypot(multi[i].x-multi[j].x,multi[i].y-multi[j].y)<TH*1.6){
-used[j]=true;sx+=multi[j].x;sy+=multi[j].y;cnt++;
-multi[j].roadIds.forEach(id=>ids.add(id));
+if(Math.hypot(candidates[i].x-candidates[j].x,candidates[i].y-candidates[j].y)<16){
+used[j]=true;sx+=candidates[j].x;sy+=candidates[j].y;cnt++;
+candidates[j].roadIds.forEach(id=>ids.add(id));
 }
 }
 trueNodes.push({id:nid++,x:Math.round(sx/cnt),y:Math.round(sy/cnt),roadIds:Array.from(ids)});
@@ -246,11 +255,11 @@ trueNodes.forEach(n=>{ctx.beginPath();ctx.arc(n.x,n.y,8,0,Math.PI*2);ctx.fillSty
 function draw(){trueNodes=buildTrueIntersections();drawGrass();roads.forEach(drawRoad);drawNodes();}
 function getMousePos(e){const rect=canvas.getBoundingClientRect();return{x:(e.clientX-rect.left)*(MAP_W/rect.width),y:(e.clientY-rect.top)*(MAP_H/rect.height)};}
 function findNearestRoad(mx,my,th=16){let best=null,bestD=th;for(const road of roads){const pts=road.points;for(let i=0;i<pts.length-1;i++){const d=distToSeg(mx,my,pts[i],pts[i+1]);if(d<bestD){bestD=d;best=road;}}}return best;}
-function findNearestNode(mx,my,th=20){let best=null,bestD=th;for(const n of trueNodes){const d=Math.hypot(mx-n.x,my-n.y);if(d<bestD){bestD=d;best=n;}}return best;}
+function findNearestNode(mx,my,th=16){let best=null,bestD=th;for(const n of trueNodes){const d=Math.hypot(mx-n.x,my-n.y);if(d<bestD){bestD=d;best=n;}}return best;}
 function roadsAtNode(node){if(node&&node.roadIds)return roads.filter(r=>node.roadIds.includes(r.id));return[];}
 canvas.addEventListener('click',e=>{const{x,y}=getMousePos(e);const node=findNearestNode(x,y);if(node){openSign(node);return;}const road=findNearestRoad(x,y);if(road)openNameModal(road);});
 function openNameModal(road){selectedRoadId=road.id;document.getElementById('streetName').value=road.name||'';document.getElementById('streetType').value=road.type||'ST';document.getElementById('nameModal').classList.add('open');setTimeout(()=>document.getElementById('streetName').focus(),30);}
-document.getElementById('saveName').onclick=()=>{const name=document.getElementById('streetName').value.trim(),type=document.getElementById('streetType').value;if(!name)return;const road=roads.find(r=>r.id===selectedRoadId);if(road){road.name=name;road.type=type;}document.getElementById('nameModal').classList.remove('open');draw();document.getElementById('status').textContent=`"${name} ${TYPE_FULL[type]}" named`;};
+document.getElementById('saveName').onclick=()=>{const name=document.getElementById('streetName').value.trim(),type=document.getElementById('streetType').value;if(!name)return;const road=roads.find(r=>r.id===selectedRoadId);if(road){road.name=name;road.type=type;}document.getElementById('nameModal').classList.remove('open');draw();document.getElementById('status').textContent=`\"${name} ${TYPE_FULL[type]}\" named`;};
 document.getElementById('cancelName').onclick=()=>document.getElementById('nameModal').classList.remove('open');
 function openSign(node){currentSignRoads=roadsAtNode(node);if(!currentSignRoads.length)return;signOrder=[0,1];updateSignBlades();document.getElementById('signOverlay').classList.add('open');}
 function updateSignBlades(){const top=currentSignRoads[signOrder[0]]||null,bot=currentSignRoads[signOrder[1]]||currentSignRoads[0]||null;const fmt=r=>!r?'—':(!r.name?'(unnamed)':`${r.name.toUpperCase()} ${TYPE_FULL[r.type]||r.type}`);document.getElementById('signTop').textContent=fmt(top);document.getElementById('signBottom').textContent=fmt(bot);}
