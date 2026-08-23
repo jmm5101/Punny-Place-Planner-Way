@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Punny Map Maker (Offline)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Overpass:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --grass: #3d7a3a;
+      --asphalt: #1c1c1c;
+      --ui: #161616;
+      --accent: #4caf50;
+      --blue: #1a5fb4;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; font-family: 'Overpass', system-ui, sans-serif; background: #0a0a0a; color: #eee; overflow: hidden; }
+    body { display: flex; flex-direction: column; }
+    header {
+      background: var(--ui); border-bottom: 2px solid #333;
+      padding: 8px 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; flex-shrink: 0; z-index: 20;
+    }
+    h1 { font-size: 0.95rem; font-weight: 800; margin-right: 8px; white-space: nowrap; }
+    .btn {
+      font-family: inherit; font-weight: 600; font-size: 0.75rem;
+      padding: 6px 10px; border: 1.5px solid #444; background: #222; color: #ddd;
+      border-radius: 4px; cursor: pointer; white-space: nowrap;
+    }
+    .btn:hover { background: #2a2a2a; }
+    .btn.active { background: var(--accent); border-color: #2e7d32; color: #000; }
+    .btn.danger { border-color: #a33; color: #f88; }
+    .btn.primary { background: var(--blue); border-color: #0d47a1; color: #fff; }
+    .status { font-size: 0.7rem; color: #888; margin-left: auto; }
+    #wrap {
+      flex: 1; position: relative; overflow: hidden;
+      display: flex; align-items: center; justify-content: center; background: #1a3a1a;
+    }
+    canvas {
+      display: block; image-rendering: pixelated; cursor: crosshair;
+      background: var(--grass); box-shadow: 0 0 30px rgba(0,0,0,0.5);
+    }
+    .panel {
+      position: absolute; top: 10px; right: 10px; width: 260px;
+      background: rgba(20,20,20,0.95); border: 1px solid #444; border-radius: 8px;
+      padding: 12px; font-size: 0.75rem; z-index: 30; max-height: 80%; overflow-y: auto;
+    }
+    .panel h3 { font-size: 0.8rem; margin-bottom: 8px; color: #aaa; }
+    .panel label { display: block; margin: 6px 0 2px; color: #999; }
+    .panel input[type=number], .panel input[type=text] {
+      width: 100%; padding: 5px 7px; background: #111; border: 1px solid #555;
+      color: #fff; border-radius: 3px; font-family: inherit;
+    }
+    .panel .row { display: flex; gap: 6px; margin-top: 8px; }
+    .panel .row .btn { flex: 1; text-align: center; }
+    #exportBox {
+      position: absolute; bottom: 10px; left: 10px; right: 10px;
+      background: rgba(0,0,0,0.85); border: 1px solid #444; border-radius: 6px;
+      padding: 8px; font-size: 0.65rem; color: #8f8; max-height: 120px; overflow: auto;
+      display: none; white-space: pre-wrap; word-break: break-all; z-index: 25;
+    }
+    .hint {
+      position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+      background: rgba(0,0,0,0.7); color: #aaa; font-size: 0.65rem;
+      padding: 4px 12px; border-radius: 4px; pointer-events: none; z-index: 10;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Map Maker</h1>
+    <button class="btn active" id="btnDraw" title="Click points to draw a road">Draw Road</button>
+    <button class="btn" id="btnSelect" title="Select vertices / roads">Select</button>
+    <button class="btn" id="btnFinish" title="Finish current road">Finish Road</button>
+    <button class="btn" id="btnUndo">Undo Point</button>
+    <button class="btn" id="btnCulDeSac" title="Toggle cul-de-sac on free ends of selected road">Cul-de-Sac</button>
+    <button class="btn primary" id="btnExport">Export JSON</button>
+    <button class="btn" id="btnLoad">Load JSON</button>
+    <button class="btn danger" id="btnClear">Clear All</button>
+    <span class="status" id="status">Click to place points for a new road</span>
+  </header>
+
+  <div id="wrap">
+    <canvas id="c"></canvas>
+    <div class="panel" id="panel">
+      <h3>Selected Vertex</h3>
+      <div id="noSel">Nothing selected</div>
+      <div id="selInfo" style="display:none">
+        <label>X</label>
+        <input type="number" id="vx" step="1" />
+        <label>Y</label>
+        <input type="number" id="vy" step="1" />
+        <label>Curve radius (0 = sharp corner)</label>
+        <input type="number" id="vr" step="5" min="0" value="0" />
+        <div class="row">
+          <button class="btn" id="btnApply">Apply</button>
+          <button class="btn danger" id="btnDelVert">Delete</button>
+        </div>
+      </div>
+      <h3 style="margin-top:14px">Road List</h3>
+      <div id="roadList" style="font-size:0.7rem; color:#bbb; max-height:180px; overflow-y:auto;"></div>
+    </div>
+    <div class="hint">Draw mode: click to add points · Finish Road when done · Intersections auto-create nodes · Free ends can be cul-de-sacs</div>
+  </div>
+
+  <div id="exportBox"></div>
+
+  <script>
+/* ============================================================
+   Punny Map Maker – standalone offline tool
+   Output JSON is compatible with Punny Place Planner Way
+   ============================================================ */
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const wrap = document.getElementById('wrap');
+
+const MAP_W = 720;
+const MAP_H = 1280;
+let scale = 1;
+
+let mode = 'draw';          // 'draw' | 'select'
+let currentRoad = null;    // { id, points: [{x,y,r}], isCulDeSac, finished }
+let roads = [];            // finished roads
+let selected = null;       // { roadId, pointIdx } or null
+let nextId = 1;
+let hover = null;
+
+function resize() {
+  const cw = wrap.clientWidth, ch = wrap.clientHeight;
+  scale = Math.min(cw / MAP_W, ch / MAP_H) * 0.96;
+  canvas.width = MAP_W;
+  canvas.height = MAP_H;
+  canvas.style.width = Math.floor(MAP_W * scale) + 'px';
+  canvas.style.height = Math.floor(MAP_H * scale) + 'px';
+  draw();
+}
+window.addEventListener('resize', resize);
+
+function getPos(e) {
+  const rect = canvas.getBoundingClientRect();
+  return {
+    x: Math.round((e.clientX - rect.left) * (MAP_W / rect.width)),
+    y: Math.round((e.clientY - rect.top) * (MAP_H / rect.height))
+  };
+}
+
+// ---------- Geometry helpers ----------
+function dist(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
+
+function lineIntersection(p1, p2, p3, p4) {
+  const d = (p1.x - p2.x) * (p3.y - p4.y) - (p1.y - p2.y) * (p3.x - p4.x);
+  if (Math.abs(d) < 1e-9) return null;
+  const t = ((p1.x - p3.x) * (p3.y - p4.y) - (p1.y - p3.y) * (p3.x - p4.x)) / d;
+  const u = -((p1.x - p2.x) * (p1.y - p3.y) - (p1.y - p2.y) * (p1.x - p3.x)) / d;
+  if (t > 0.01 && t < 0.99 && u > 0.01 && u < 0.99) {
+    return { x: p1.x + t * (p2.x - p1.x), y: p1.y + t * (p2.y - p1.y) };
+  }
+  return null;
+}
+
+// Detect all intersections between finished roads and insert shared nodes
+function computeIntersections() {
+  const nodes = new Map(); // key "x,y" -> {x,y,id}
+  let nid = 0;
+  function getNode(x, y) {
+    const key = Math.round(x) + ',' + Math.round(y);
+    if (!nodes.has(key)) {
+      nodes.set(key, { id: nid++, x: Math.round(x), y: Math.round(y) });
+    }
+    return nodes.get(key);
+  }
+
+  // First collect all endpoints and intermediate points as potential nodes
+  roads.forEach(r => {
+    r.points.forEach(p => getNode(p.x, p.y));
+  });
+
+  // Find crossings between different roads
+  for (let i = 0; i < roads.length; i++) {
+    for (let j = i + 1; j < roads.length; j++) {
+      const A = roads[i].points, B = roads[j].points;
+      for (let ai = 0; ai < A.length - 1; ai++) {
+        for (let bi = 0; bi < B.length - 1; bi++) {
+          const hit = lineIntersection(A[ai], A[ai+1], B[bi], B[bi+1]);
+          if (hit) getNode(hit.x, hit.y);
+        }
+      }
+    }
+  }
+
+  // Also mark nodes that are near endpoints of other roads
+  const nodeList = Array.from(nodes.values());
+  return nodeList;
+}
+
+// ---------- Drawing ----------
+function drawGrass() {
+  ctx.fillStyle = '#3d7a3a';
+  ctx.fillRect(0, 0, MAP_W, MAP_H);
+  ctx.fillStyle = 'rgba(0,0,0,0.04)';
+  for (let i = 0; i < 180; i++) {
+    ctx.fillRect((i * 67) % MAP_W, (i * 43) % MAP_H, 3, 3);
+  }
+}
+
+function drawRoad(road, isCurrent = false) {
+  const pts = road.points;
+  if (pts.length < 2) {
+    if (pts.length === 1) {
+      ctx.beginPath();
+      ctx.arc(pts[0].x, pts[0].y, 6, 0, Math.PI * 2);
+      ctx.fillStyle = isCurrent ? '#4caf50' : '#f5d000';
+      ctx.fill();
+    }
+    return;
+  }
+
+  // Outer black
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].y);
+  for (let i = 1; i < pts.length; i++) {
+    const prev = pts[i - 1], cur = pts[i];
+    if (cur.r && cur.r > 0 && i < pts.length - 1) {
+      // simple quadratic approximation for curve at this vertex
+      const next = pts[i + 1];
+      const mx = (prev.x + next.x) / 2, my = (prev.y + next.y) / 2;
+      ctx.quadraticCurveTo(cur.x, cur.y, mx, my);
+    } else {
+      ctx.lineTo(cur.x, cur.y);
+    }
+  }
+  ctx.strokeStyle = '#0a0a0a';
+  ctx.lineWidth = 20;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.stroke();
+
+  // Asphalt
+  ctx.strokeStyle = '#1c1c1c';
+  ctx.lineWidth = 14;
+  ctx.stroke();
+
+  // Center line
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].y);
+  for (let i = 1; i < pts.length; i++) {
+    const prev = pts[i - 1], cur = pts[i];
+    if (cur.r && cur.r > 0 && i < pts.length - 1) {
+      const next = pts[i + 1];
+      const mx = (prev.x + next.x) / 2, my = (prev.y + next.y) / 2;
+      ctx.quadraticCurveTo(cur.x, cur.y, mx, my);
+    } else {
+      ctx.lineTo(cur.x, cur.y);
+    }
+  }
+  ctx.strokeStyle = '#f0c800';
+  ctx.lineWidth = 1.6;
+  ctx.setLineDash([6, 5]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Cul-de-sac bulb at free ends
+  if (road.isCulDeSac && pts.length >= 2) {
+    const last = pts[pts.length - 1];
+    ctx.beginPath();
+    ctx.arc(last.x, last.y, 22, 0, Math.PI * 2);
+    ctx.fillStyle = '#1c1c1c';
+    ctx.fill();
+    ctx.strokeStyle = '#0a0a0a';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+  }
+
+  // Vertices
+  pts.forEach((p, idx) => {
+    const isSel = selected && selected.roadId === road.id && selected.pointIdx === idx;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, isSel ? 9 : 6, 0, Math.PI * 2);
+    ctx.fillStyle = isSel ? '#4caf50' : (isCurrent ? '#8bc34a' : '#f5d000');
+    ctx.fill();
+    ctx.strokeStyle = '#111';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    if (p.r && p.r > 0) {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(255,200,0,0.35)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+  });
+}
+
+function draw() {
+  drawGrass();
+  roads.forEach(r => drawRoad(r, false));
+  if (currentRoad) drawRoad(currentRoad, true);
+
+  // Draw intersection nodes (computed)
+  const nodes = computeIntersections();
+  nodes.forEach(n => {
+    // only draw if not already a vertex of a road
+    let already = false;
+    roads.forEach(r => r.points.forEach(p => {
+      if (Math.hypot(p.x - n.x, p.y - n.y) < 8) already = true;
+    }));
+    if (currentRoad) currentRoad.points.forEach(p => {
+      if (Math.hypot(p.x - n.x, p.y - n.y) < 8) already = true;
+    });
+    if (!already) {
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, 7, 0, Math.PI * 2);
+      ctx.fillStyle = '#ff9800';
+      ctx.fill();
+      ctx.strokeStyle = '#111';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+  });
+
+  updateRoadList();
+}
+
+function updateRoadList() {
+  const el = document.getElementById('roadList');
+  if (!roads.length && !currentRoad) {
+    el.innerHTML = '<em>No roads yet</em>';
+    return;
+  }
+  let html = '';
+  roads.forEach((r, i) => {
+    html += `<div style="margin:3px 0;padding:3px 0;border-bottom:1px solid #333">
+      Road ${r.id} · ${r.points.length} pts ${r.isCulDeSac ? '· CDS' : ''}
+      <button class="btn" style="padding:2px 6px;font-size:0.65rem;margin-left:6px" data-sel="${r.id}">Sel</button>
+    </div>`;
+  });
+  if (currentRoad) {
+    html += `<div style="margin:3px 0;color:#8bc34a">Current · ${currentRoad.points.length} pts</div>`;
+  }
+  el.innerHTML = html;
+  el.querySelectorAll('[data-sel]').forEach(b => {
+    b.onclick = () => {
+      const rid = +b.dataset.sel;
+      const road = roads.find(r => r.id === rid);
+      if (road && road.points.length) {
+        selected = { roadId: rid, pointIdx: 0 };
+        updateSelPanel();
+        draw();
+      }
+    };
+  });
+}
+
+function updateSelPanel() {
+  const no = document.getElementById('noSel');
+  const info = document.getElementById('selInfo');
+  if (!selected) {
+    no.style.display = 'block';
+    info.style.display = 'none';
+    return;
+  }
+  no.style.display = 'none';
+  info.style.display = 'block';
+  const road = roads.find(r => r.id === selected.roadId) || currentRoad;
+  if (!road) return;
+  const p = road.points[selected.pointIdx];
+  document.getElementById('vx').value = p.x;
+  document.getElementById('vy').value = p.y;
+  document.getElementById('vr').value = p.r || 0;
+}
+
+// ---------- Interaction ----------
+canvas.addEventListener('click', e => {
+  const pos = getPos(e);
+  if (mode === 'draw') {
+    if (!currentRoad) {
+      currentRoad = { id: nextId++, points: [], isCulDeSac: false, finished: false };
+    }
+    currentRoad.points.push({ x: pos.x, y: pos.y, r: 0 });
+    document.getElementById('status').textContent = `Road ${currentRoad.id}: ${currentRoad.points.length} points · click Finish when done`;
+    draw();
+  } else {
+    // select nearest vertex
+    let best = null, bestD = 18;
+    const all = [...roads];
+    if (currentRoad) all.push(currentRoad);
+    all.forEach(r => {
+      r.points.forEach((p, idx) => {
+        const d = dist(p, pos);
+        if (d < bestD) {
+          bestD = d;
+          best = { roadId: r.id, pointIdx: idx };
+        }
+      });
+    });
+    selected = best;
+    updateSelPanel();
+    draw();
+  }
+});
+
+document.getElementById('btnDraw').onclick = () => {
+  mode = 'draw';
+  document.getElementById('btnDraw').classList.add('active');
+  document.getElementById('btnSelect').classList.remove('active');
+  document.getElementById('status').textContent = 'Draw mode: click to place points';
+};
+document.getElementById('btnSelect').onclick = () => {
+  mode = 'select';
+  document.getElementById('btnSelect').classList.add('active');
+  document.getElementById('btnDraw').classList.remove('active');
+  document.getElementById('status').textContent = 'Select mode: click a vertex';
+};
+document.getElementById('btnFinish').onclick = () => {
+  if (currentRoad && currentRoad.points.length >= 2) {
+    currentRoad.finished = true;
+    roads.push(currentRoad);
+    currentRoad = null;
+    document.getElementById('status').textContent = `Road finished. Total roads: ${roads.length}`;
+    draw();
+  } else {
+    document.getElementById('status').textContent = 'Need at least 2 points to finish a road';
+  }
+};
+document.getElementById('btnUndo').onclick = () => {
+  if (currentRoad && currentRoad.points.length) {
+    currentRoad.points.pop();
+    if (!currentRoad.points.length) currentRoad = null;
+    draw();
+  }
+};
+document.getElementById('btnCulDeSac').onclick = () => {
+  if (selected) {
+    const road = roads.find(r => r.id === selected.roadId);
+    if (road) {
+      road.isCulDeSac = !road.isCulDeSac;
+      draw();
+    }
+  } else if (currentRoad) {
+    currentRoad.isCulDeSac = !currentRoad.isCulDeSac;
+    draw();
+  } else {
+    document.getElementById('status').textContent = 'Select a road first (or draw one)';
+  }
+};
+document.getElementById('btnClear').onclick = () => {
+  if (confirm('Clear all roads?')) {
+    roads = [];
+    currentRoad = null;
+    selected = null;
+    nextId = 1;
+    draw();
+  }
+};
+
+document.getElementById('btnApply').onclick = () => {
+  if (!selected) return;
+  const road = roads.find(r => r.id === selected.roadId) || currentRoad;
+  if (!road) return;
+  const p = road.points[selected.pointIdx];
+  p.x = +document.getElementById('vx').value;
+  p.y = +document.getElementById('vy').value;
+  p.r = +document.getElementById('vr').value || 0;
+  draw();
+};
+document.getElementById('btnDelVert').onclick = () => {
+  if (!selected) return;
+  const road = roads.find(r => r.id === selected.roadId) || currentRoad;
+  if (!road || road.points.length <= 2) return;
+  road.points.splice(selected.pointIdx, 1);
+  selected = null;
+  updateSelPanel();
+  draw();
+};
+
+// ---------- Export / Import ----------
+function buildExport() {
+  // Recompute clean nodes and attach nodeIds to roads
+  const nodes = computeIntersections();
+  const nodeMap = new Map();
+  nodes.forEach(n => nodeMap.set(n.x + ',' + n.y, n));
+
+  const exportRoads = roads.map(r => {
+    // find which of this road's points are near computed nodes
+    const nodeIds = [];
+    r.points.forEach(p => {
+      const key = Math.round(p.x) + ',' + Math.round(p.y);
+      if (nodeMap.has(key)) nodeIds.push(nodeMap.get(key).id);
+    });
+    // also check for crossings that were inserted
+    return {
+      id: r.id,
+      name: '',
+      type: 'ST',
+      points: r.points.map(p => ({ x: p.x, y: p.y, r: p.r || 0 })),
+      nodeIds,
+      isCulDeSac: !!r.isCulDeSac
+    };
+  });
+
+  return {
+    version: 1,
+    mapWidth: MAP_W,
+    mapHeight: MAP_H,
+    nodes: nodes,
+    roads: exportRoads
+  };
+}
+
+document.getElementById('btnExport').onclick = () => {
+  if (!roads.length) {
+    alert('Finish at least one road first');
+    return;
+  }
+  const data = buildExport();
+  const json = JSON.stringify(data, null, 2);
+  const box = document.getElementById('exportBox');
+  box.style.display = 'block';
+  box.textContent = json;
+
+  // Also download
+  const blob = new Blob([json], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'punny-map.json';
+  a.click();
+  document.getElementById('status').textContent = 'Exported · JSON also shown at bottom · send this file to Grok for the game';
+};
+
+document.getElementById('btnLoad').onclick = () => {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json,application/json';
+  input.onchange = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        roads = (data.roads || []).map(r => ({
+          id: r.id,
+          points: r.points.map(p => ({ x: p.x, y: p.y, r: p.r || 0 })),
+          isCulDeSac: !!r.isCulDeSac,
+          finished: true
+        }));
+        nextId = Math.max(1, ...roads.map(r => r.id)) + 1;
+        currentRoad = null;
+        selected = null;
+        draw();
+        document.getElementById('status').textContent = `Loaded ${roads.length} roads`;
+      } catch (err) {
+        alert('Invalid JSON');
+      }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+};
+
+// keyboard shortcuts
+window.addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('btnFinish').click();
+  if (e.key === 'z' && (e.ctrlKey || e.metaKey)) document.getElementById('btnUndo').click();
+  if (e.key === 'Escape') {
+    currentRoad = null;
+    selected = null;
+    updateSelPanel();
+    draw();
+  }
+});
+
+resize();
+draw();
+  </script>
+</body>
+</html>
